@@ -35,8 +35,10 @@ echo      Orbit - apply update
 echo   ==========================================
 echo.
 
-if not exist "%FILES%" goto :nothing_staged
-if not exist "%STAGING%\READY" goto :nothing_staged
+REM staged ????????????????????
+REM ?? files\ ?"????"?files\ ?? READY ???"?????"?
+if not exist "%FILES%" goto :no_files
+if not exist "%STAGING%\READY" goto :incomplete
 
 REM ---- make sure nothing is holding our files ----
 call :port_busy 8000
@@ -124,10 +126,26 @@ REM ============================================================
 REM  exits
 REM ============================================================
 
-:nothing_staged
-echo   Nothing to apply: update-staging\files not found.
+:no_files
+echo   Nothing staged yet.
 echo.
-echo   Download the update first, from Settings - About - Check for updates.
+echo   In Orbit: Settings - About - check for updates, then click download.
+echo.
+echo   (Note: this script lives in the Orbit folder, next to start-orbit.bat.
+echo    The download goes into update-staging\, it does not land here.)
+echo.
+pause
+exit /b 1
+
+:incomplete
+echo   [!] The download did not finish.
+echo.
+echo   update-staging\files exists but the READY marker is missing - Orbit
+echo   writes that marker only after a download completes, so this means it
+echo   was interrupted or failed partway (a network drop or GitHub rate
+echo   limiting will do it).
+echo.
+echo   Go back to Settings - About and download the update again.
 echo.
 pause
 exit /b 1

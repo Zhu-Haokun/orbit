@@ -129,7 +129,10 @@ def download_update() -> dict[str, Any]:
 
     return {
         **result,
-        "message": "更新已下载。请关闭所有 Orbit 窗口，再双击 update-staging 里的 apply-update.bat。",
+        "message": (
+            "更新已下载。请关闭所有 Orbit 窗口，"
+            "再双击 Orbit 文件夹里的 apply-update.bat。"
+        ),
     }
 
 

@@ -271,6 +271,12 @@ def stage_update(download_url: str) -> dict[str, Any]:
     if not download_url:
         raise ReleaseError("这个 release 没有提供 zip 附件。")
 
+    # 上一次下载可能失败到一半，留下一个空的 files\。先清干净再解压，
+    # 否则下一次成功时会和残留混在一起，也难以判断 READY 是否可信。
+    import shutil
+
+    shutil.rmtree(STAGING_DIR, ignore_errors=True)
+
     STAGING_DIR.mkdir(parents=True, exist_ok=True)
     archive = STAGING_DIR / "orbit-update.zip"
 
