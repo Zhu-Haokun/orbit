@@ -16,7 +16,25 @@ from collections.abc import Generator, Iterator
 from pathlib import Path
 
 # --- 必须在导入 app.* 之前完成环境准备 -------------------------------------- #
-_TMP_DIR = Path(tempfile.mkdtemp(prefix="orbit-tests-"))
+
+#: 挑一个**确实能写**的临时目录。
+#:
+#: 不用裸 ``tempfile.mkdtemp()``：``gettempdir()`` 在 %TEMP% 不可写时会
+#: **静默退回当前工作目录**，于是临时库落到项目路径下面。项目路径一旦含中文
+#: （本仓库就是「人情星图\orbit_github\…」），SQLite 会报
+#: "unable to open database file"，而错误信息里根本看不出跟临时目录有关。
+def _make_tmp_dir() -> Path:
+    for base in (os.environ.get("TEMP"), os.environ.get("TMP"), tempfile.gettempdir()):
+        if not base:
+            continue
+        try:
+            return Path(tempfile.mkdtemp(prefix="orbit-tests-", dir=base))
+        except OSError:
+            continue
+    raise RuntimeError("找不到可写的临时目录，请检查 TEMP / TMP 环境变量。")
+
+
+_TMP_DIR = _make_tmp_dir()
 _DB_PATH = _TMP_DIR / "orbit-test.db"
 os.environ["DATABASE_URL"] = f"sqlite:///{_DB_PATH.as_posix()}"
 os.environ["JWT_SECRET"] = "test-secret"
