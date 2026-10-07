@@ -78,9 +78,56 @@ def _system_proxy() -> str | None:
         if not server:
             return None
 
-    if not server.startswith(("http://", "https://")):
-        server = f"http://{server}"
-    return server
+    # 已经带 scheme 的不要动 —— 尤其别给 socks5:// 前面再糊一个 http://，
+    # 那样拼出来的地址根本连不上。
+    if "://" in server:
+        if server.startswith(("http://", "https://")):
+            return server
+        if server.startswith(("socks4://", "socks5://", "socks://")):
+            # httpx 走 SOCKS 需要额外装 socksio。没装就放弃代理退回直连，
+            # 比传一个必然报错的地址好。
+            try:
+                import socksio  # noqa: F401
+            except ImportError:
+                return None
+            return server
+        return None
+    return f"http://{server}"
+
+
+def _get(url: str, headers: dict[str, str], *, follow_redirects: bool = True) -> httpx.Response:
+    """GET 一次；系统代理连不上就退回直连。
+
+    为什么需要这个兜底：系统代理可能**开着但没在跑**（Clash 关掉了，
+    注册表里的 127.0.0.1:7890 还留着）。那样所有请求都会失败，用户明明
+    能上网却收不到更新。直连再试一次往往就通了 —— 不是每个网络都封 GitHub。
+
+    只在**连接层失败**时重试。代理返回了 4xx/5xx 说明它本身是通的，
+    这时直连没有意义，直接把响应交给调用方判断。
+    """
+    proxy = _system_proxy()
+    attempts: list[str | None] = [proxy, None] if proxy else [None]
+
+    last_error: httpx.HTTPError | None = None
+    for hop in attempts:
+        try:
+            if hop:
+                with httpx.Client(
+                    timeout=CHECK_TIMEOUT_SECONDS, follow_redirects=follow_redirects, proxy=hop
+                ) as client:
+                    return client.get(url, headers=headers)
+            with httpx.Client(
+                timeout=CHECK_TIMEOUT_SECONDS, follow_redirects=follow_redirects, trust_env=bool(proxy)
+            ) as client:
+                return client.get(url, headers=headers)
+        except httpx.ConnectError as exc:
+            # 连不上 —— 可能是代理没开，换直连再试。
+            last_error = exc
+        except httpx.HTTPError:
+            # 连上了但请求本身出问题（超时、TLS…），换路径也不会有改善。
+            raise
+
+    raise ReleaseError(f"连不上 GitHub：{last_error.__class__.__name__ if last_error else '未知原因'}")
 
 
 def _client(timeout: float, *, follow_redirects: bool = True) -> httpx.Client:
@@ -221,8 +268,7 @@ def fetch_latest(repository: str) -> LatestRelease:
     headers = {"Accept": "application/vnd.github+json", "User-Agent": "orbit-update-check"}
 
     try:
-        with _client(CHECK_TIMEOUT_SECONDS) as client:
-            response = client.get(url, headers=headers)
+        response = _get(url, headers)
     except httpx.HTTPError as exc:
         raise ReleaseError(f"连不上 GitHub：{exc.__class__.__name__}") from exc
 
@@ -263,18 +309,14 @@ def _fetch_latest_via_html(repository: str) -> LatestRelease:
     headers = {"User-Agent": "orbit-update-check"}
 
     try:
-        with _client(CHECK_TIMEOUT_SECONDS, follow_redirects=False) as client:
-            redirect = client.get(f"{base}/releases/latest", headers=headers)
-            location = redirect.headers.get("location", "")
-            match = re.search(r"/releases/tag/([^/?#]+)", location)
-            if not match:
-                raise ReleaseError("GitHub 限流了，而且网页降级也没读到版本号，过一会儿再试。")
-            tag = match.group(1)
+        redirect = _get(f"{base}/releases/latest", headers, follow_redirects=False)
+        location = redirect.headers.get("location", "")
+        match = re.search(r"/releases/tag/([^/?#]+)", location)
+        if not match:
+            raise ReleaseError("GitHub 限流了，而且网页降级也没读到版本号，过一会儿再试。")
+        tag = match.group(1)
 
-            assets = client.get(
-                f"{base}/releases/expanded_assets/{tag}",
-                headers=headers,
-            )
+        assets = _get(f"{base}/releases/expanded_assets/{tag}", headers)
     except httpx.HTTPError as exc:
         raise ReleaseError(f"连不上 GitHub：{exc.__class__.__name__}") from exc
 
