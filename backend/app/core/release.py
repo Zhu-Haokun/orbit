@@ -141,8 +141,7 @@ def _client(timeout: float, *, follow_redirects: bool = True) -> httpx.Client:
         return httpx.Client(timeout=timeout, follow_redirects=follow_redirects, proxy=proxy)
     return httpx.Client(timeout=timeout, follow_redirects=follow_redirects, trust_env=True)
 
-#: 更新包里允许出现的路径前缀。别的文件一律忽略，避免把用户的
-#: 数据或环境覆盖掉（防御性：即使发布的 ZIP 打包错了也不会出事）。
+#: 更新包里允许出现的路径前缀。别的文件一律忽略，避免把用户的#: 数据或环境覆盖掉（防御性：即使发布的 ZIP 打包错了也不会出事）。
 SAFE_PREFIXES: tuple[str, ...] = (
     "backend/app/",
     "backend/alembic/",
@@ -173,6 +172,17 @@ FORBIDDEN_NAMES: tuple[str, ...] = (
     "orbit.db",
     "orbit.db-journal",
     "orbit.db-wal",
+)
+
+#: 完整安装包的文件名特征。一个 Release 上可能同时挂更新包和完整安装包
+#: （前者约 0.7 MB，后者约 17 MB，含 105 MB 的依赖）。自动更新必须挑前者。
+FULL_PACKAGE_MARKERS: tuple[str, ...] = (
+    "完整安装包",
+    "完整包",
+    "full",
+    "installer",
+    "setup",
+    "handoff",
 )
 
 
@@ -244,12 +254,29 @@ def is_newer(candidate: str, current: str) -> bool:
 
 
 def _pick_zip_asset(assets: list[dict[str, Any]]) -> str | None:
-    """挑下载地址：优先名字里带 orbit 的 zip，否则第一个 zip。"""
+    """挑下载地址：优先「名字里带 orbit 的更新包」，否则任何 zip。
+
+    同一个 Release 上可能挂两个附件：
+
+    * ``orbit-1.0.7.zip``              更新包，约 0.7 MB，给已有用户
+    * ``orbit-1.0.7-完整安装包.zip``    完整包，约 17 MB，给新用户第一次装
+
+    GitHub 返回的顺序不保证，所以必须**显式排掉完整安装包** —— 否则老用户
+    会平白下载 17 MB（功能正常，但毫无必要，而且慢）。万一整个 Release 只有
+    完整包，那也只能将就，总比没有更新可用好。
+    """
     zips = [a for a in assets if str(a.get("name", "")).lower().endswith(".zip")]
     if not zips:
         return None
-    preferred = [a for a in zips if "orbit" in str(a.get("name", "")).lower()]
-    chosen = (preferred or zips)[0]
+
+    def is_full_package(asset: dict[str, Any]) -> bool:
+        name = str(asset.get("name", "")).lower()
+        return any(marker in name for marker in FULL_PACKAGE_MARKERS)
+
+    update_packages = [a for a in zips if not is_full_package(a)]
+    pool = update_packages or zips
+    preferred = [a for a in pool if "orbit" in str(a.get("name", "")).lower()]
+    chosen = (preferred or pool)[0]
     url = chosen.get("browser_download_url")
     return str(url) if url else None
 
