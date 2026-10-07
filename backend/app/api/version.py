@@ -28,6 +28,9 @@ class VersionInfo(CamelModel):
     #: 更新包是否已经下载好、等待应用。
     staged: bool
     staged_files: int
+    #: 服务端正在发的入口 chunk 文件名；前端拿它对比自己那一份，
+    #: 不一致就说明页面是旧的，自动刷新一次。
+    frontend_entry: str | None = None
 
 
 class UpdateCheck(CamelModel):
@@ -62,6 +65,7 @@ def _version_info() -> dict[str, Any]:
         "notes": info.notes,
         "staged": bool(staged.get("ready")),
         "staged_files": int(staged.get("files") or 0),
+        "frontend_entry": release.frontend_entry(),
     }
 
 

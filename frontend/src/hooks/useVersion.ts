@@ -156,3 +156,48 @@ export function useUpdateNotice(): UpdateNoticeState {
 
   return { hasUpdate: Boolean(notice?.hasUpdate), latest: notice?.latest ?? null };
 }
+
+/* ---------------------------------------------------------------------------
+ * 页面陈旧时自动刷新
+ *
+ * 场景：用户刚更新完（或者开发时重新构建了 dist），但浏览器里那个标签页
+ * 还开着。``start-orbit.bat`` 打开同一个地址时，已开着的标签页只会被切到
+ * 前台、**不会重新加载** —— 界面还是旧的，用户以为更新没生效。
+ *
+ * 做法：拿自己入口 chunk 的文件名，和服务器正在发的那份比。
+ * Vite 的文件名里嵌了内容哈希，前端一变这个值就变。
+ *
+ * 防死循环：同一份新入口只刷一次，记在 sessionStorage 里。
+ * ------------------------------------------------------------------------- */
+
+const RELOAD_GUARD_KEY = "orbit.build.reloaded";
+
+function ownEntry(): string | null {
+  const script = document.querySelector<HTMLScriptElement>('script[type="module"][src]');
+  if (!script) return null;
+  try {
+    return new URL(script.getAttribute("src") ?? "", window.location.origin).pathname;
+  } catch {
+    return null;
+  }
+}
+
+/** 挂在应用根上：服务端换了前端就自动刷新一次，用户不用自己按 Ctrl+F5。 */
+export function useBuildWatch(): void {
+  const version = useVersion();
+  const serverEntry = version.data?.frontendEntry;
+
+  useEffect(() => {
+    const mine = ownEntry();
+    if (!mine || !serverEntry || mine === serverEntry) return;
+
+    try {
+      // 已经为这份新入口刷过一次，还是对不上就不再刷（避免死循环）。
+      if (window.sessionStorage.getItem(RELOAD_GUARD_KEY) === serverEntry) return;
+      window.sessionStorage.setItem(RELOAD_GUARD_KEY, serverEntry);
+    } catch {
+      return;
+    }
+    window.location.reload();
+  }, [serverEntry]);
+}

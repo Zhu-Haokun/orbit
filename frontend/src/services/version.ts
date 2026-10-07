@@ -16,6 +16,11 @@ export interface VersionInfo {
   /** 更新包是否已经下载好、等待用户关闭程序后应用。 */
   staged: boolean;
   stagedFiles: number;
+  /**
+   * 服务端正在发的入口 chunk 文件名，例如 `/assets/index-a1b2c3.js`。
+   * 前端拿它对比自己那一份：不一致就说明这个标签页是旧的，自动刷新一次。
+   */
+  frontendEntry: string | null;
 }
 
 export interface UpdateCheck {

@@ -8,6 +8,7 @@ import { ToastViewport } from "@/components/ui/Toast";
 import { CreatePersonModal } from "@/features/people/CreatePersonModal";
 import { GlobalSearch } from "@/features/search/GlobalSearch";
 import { cn } from "@/lib/cn";
+import { useBuildWatch } from "@/hooks/useVersion";
 import { applyBackgroundTone, useBackgroundStore } from "@/stores/backgroundStore";
 
 /**
@@ -21,6 +22,10 @@ export function AppShell() {
   const isGalaxy = location.pathname.startsWith("/galaxy");
   const isRecord = location.pathname.startsWith("/record");
   const tone = useBackgroundStore((state) => state.tone);
+
+  // 服务端换了前端就自动刷新一次 —— 否则 start-orbit.bat 打开同一个地址时，
+  // 已经开着的标签页只会被切到前台，用户看到的还是旧界面。
+  useBuildWatch();
 
   // 氛围只是 <html> 上的一个 data 属性：切换不重载、不重新请求任何东西。
   useEffect(() => {

@@ -148,7 +148,12 @@ def _pick_zip_asset(assets: list[dict[str, Any]]) -> str | None:
 
 
 def fetch_latest(repository: str) -> LatestRelease:
-    """问 GitHub 要最新的 release。任何失败都抛 :class:`ReleaseError`。"""
+    """问 GitHub 要最新的 release。任何失败都抛 :class:`ReleaseError`。
+
+    先用 REST API（能拿到说明和附件列表）。被限流时降级走网页 ——
+    匿名 API 每小时只有 60 次，用户如果在公司网络或共享出口 IP 后面，
+    很容易撞上限额；那时更新功能不该静默失效。
+    """
     if not repository:
         raise ReleaseError("还没有配置 GitHub 仓库地址，暂时无法检查更新。")
 
@@ -164,7 +169,9 @@ def fetch_latest(repository: str) -> LatestRelease:
     if response.status_code == 404:
         raise ReleaseError("仓库或 Release 不存在 —— 检查 release.json 里的 repository。")
     if response.status_code == 403:
-        raise ReleaseError("GitHub 限流了，过一会儿再试。")
+        # 限流。网页路径不消耗 API 额度，能拿到版本号和附件下载地址，
+        # 只是没有 release 说明 —— 有总比"更新功能不可用"好。
+        return _fetch_latest_via_html(repository)
     if response.status_code >= 400:
         raise ReleaseError(f"GitHub 返回 {response.status_code}。")
 
@@ -179,6 +186,51 @@ def fetch_latest(repository: str) -> LatestRelease:
         html_url=str(payload.get("html_url") or ""),
         download_url=_pick_zip_asset(list(payload.get("assets") or [])),
         published_at=payload.get("published_at"),
+    )
+
+
+def _fetch_latest_via_html(repository: str) -> LatestRelease:
+    """降级路径：不调用 REST API，因此不受 60 次/小时的额度限制。
+
+    两步，都是普通网页请求：
+
+    1. ``/releases/latest`` 会 302 到 ``/releases/tag/<tag>``，从 Location 里读出 tag
+    2. ``/releases/expanded_assets/<tag>`` 返回一段列出附件的 HTML，从中找 zip
+
+    拿不到 release 说明（那只有 API 有），但"有新版本 + 能下载"这两件事成立。
+    """
+    base = f"https://github.com/{repository}"
+    headers = {"User-Agent": "orbit-update-check"}
+
+    try:
+        with httpx.Client(timeout=CHECK_TIMEOUT_SECONDS, follow_redirects=False) as client:
+            redirect = client.get(f"{base}/releases/latest", headers=headers)
+            location = redirect.headers.get("location", "")
+            match = re.search(r"/releases/tag/([^/?#]+)", location)
+            if not match:
+                raise ReleaseError("GitHub 限流了，而且网页降级也没读到版本号，过一会儿再试。")
+            tag = match.group(1)
+
+            assets = client.get(
+                f"{base}/releases/expanded_assets/{tag}",
+                headers=headers,
+            )
+    except httpx.HTTPError as exc:
+        raise ReleaseError(f"连不上 GitHub：{exc.__class__.__name__}") from exc
+
+    download_url = None
+    if assets.status_code < 400:
+        found = re.findall(r'href="([^"]*/releases/download/[^"]+\.zip)"', assets.text)
+        if found:
+            download_url = f"https://github.com{found[0]}" if found[0].startswith("/") else found[0]
+
+    return LatestRelease(
+        version=tag.lstrip("vV"),
+        tag=tag,
+        name=tag,
+        notes="（GitHub 接口暂时限流，这次只取到了版本号，更新说明请到 Release 页面查看。）",
+        html_url=f"{base}/releases/tag/{tag}",
+        download_url=download_url,
     )
 
 
@@ -302,6 +354,33 @@ def clear_staged() -> None:
     shutil.rmtree(STAGING_DIR, ignore_errors=True)
 
 
+# --------------------------------------------------------------------------- #
+# 前端构建标识
+# --------------------------------------------------------------------------- #
+
+DIST_INDEX = REPO_ROOT / "frontend" / "dist" / "index.html"
+
+
+def frontend_entry() -> str | None:
+    """当前要发给浏览器的入口 chunk 文件名，例如 ``/assets/index-a1b2c3.js``。
+
+    Vite 给每个 chunk 的文件名里都嵌了内容哈希，所以这个值**只要前端重新构建过就会变**。
+
+    用途：页面开着不动的时候，后端可能已经换成新的一份前端了（用户刚更新完，
+    或者开发时重新构建）。浏览器里那份 React 应用还是旧的，而
+    ``start-orbit.bat`` 打开同一个地址时，已开着的标签页只会被切到前台、
+    **不会重新加载** —— 用户看到的就是一份陈旧界面，还以为更新没生效。
+
+    前端拿自己入口的文件名和这个值比一下，不一致就刷新一次。
+    """
+    try:
+        html = DIST_INDEX.read_text(encoding="utf-8", errors="ignore")
+    except OSError:
+        return None
+    match = re.search(r'src="(/assets/[^"]+\.js)"', html)
+    return match.group(1) if match else None
+
+
 __all__ = [
     "REPO_ROOT",
     "ReleaseError",
@@ -313,6 +392,7 @@ __all__ = [
     "stage_update",
     "staged_status",
     "clear_staged",
+    "frontend_entry",
     "SAFE_PREFIXES",
     "FORBIDDEN_NAMES",
 ]
