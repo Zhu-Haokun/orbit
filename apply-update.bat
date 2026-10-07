@@ -67,10 +67,20 @@ for %%F in (%LOOSE%) do (
 )
 
 echo   [2/5] copying new files...
+REM robocopy /MIR (mirror) instead of xcopy /e:
+REM   xcopy only overwrites and adds - it never deletes. So a file that was
+REM   renamed or removed upstream stays on the user's disk forever. That is
+REM   usually just wasted space, but it bites when a module is split into a
+REM   package (old app\models.py keeps sitting next to app\models\) or when
+REM   a migration is deleted (alembic still finds it).
+REM   /MIR makes the target match the package exactly, which is what these
+REM   six folders are: entirely ours, with no user files inside.
 for %%D in (%DIRS%) do (
   if exist "%FILES%\%%D" (
     if not exist "%CD%\%%D" mkdir "%CD%\%%D" 2>nul
-    xcopy /e /i /q /y "%FILES%\%%D" "%CD%\%%D" >nul
+    robocopy "%FILES%\%%D" "%CD%\%%D" /MIR /NFL /NDL /NJH /NJS /NP /R:1 /W:1 >nul
+    REM robocopy exit codes 0-7 all mean success; 8 and up is a real failure.
+    if errorlevel 8 goto :copy_failed
   )
 )
 for %%F in (%LOOSE%) do (
@@ -158,12 +168,19 @@ echo.
 pause
 exit /b 1
 
+:copy_failed
+echo.
+echo   [!] Copying the new files failed. Rolling everything back...
+goto :rollback
+
 :migrate_failed
 echo.
 echo   [!] Database upgrade failed. Rolling everything back...
+
+:rollback
 if exist "%BACKUP%\orbit.db" copy /y "%BACKUP%\orbit.db" "%CD%\backend\orbit.db" >nul
 for %%D in (%DIRS%) do (
-  if exist "%BACKUP%\%%D" xcopy /e /i /q /y "%BACKUP%\%%D" "%CD%\%%D" >nul
+  if exist "%BACKUP%\%%D" robocopy "%BACKUP%\%%D" "%CD%\%%D" /MIR /NFL /NDL /NJH /NJS /NP /R:1 /W:1 >nul
 )
 for %%F in (%LOOSE%) do (
   if exist "%BACKUP%\%%F" copy /y "%BACKUP%\%%F" "%CD%\%%F" >nul
