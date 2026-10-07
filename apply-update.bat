@@ -16,6 +16,19 @@ set "STAGING=%CD%\update-staging"
 set "FILES=%STAGING%\files"
 set "BACKUP=%CD%\update-backup"
 
+REM ------------------------------------------------------------
+REM  THE list. Backup and copy both walk it, so they can never
+REM  drift apart. They did once: the backup only covered three
+REM  folders while the copy covered six plus a pile of loose
+REM  files, so a failed migration left frontend\src and README.md
+REM  replaced with no way back. Found by actually running it.
+REM ------------------------------------------------------------
+set "DIRS=backend\app backend\alembic backend\tests frontend\dist frontend\src frontend\public"
+set "LOOSE=README.md release.json start-orbit.bat apply-update.bat docker-compose.yml"
+set "LOOSE=%LOOSE% backend\alembic.ini backend\pyproject.toml backend\requirements.txt"
+set "LOOSE=%LOOSE% backend\requirements.lock.txt backend\requirements-dev.txt backend\smoke_test.py"
+set "LOOSE=%LOOSE% frontend\package.json frontend\package-lock.json"
+
 echo.
 echo   ==========================================
 echo      Orbit - apply update
@@ -25,7 +38,7 @@ echo.
 if not exist "%FILES%" goto :nothing_staged
 if not exist "%STAGING%\READY" goto :nothing_staged
 
-REM ---- 1. make sure nothing is holding our files ----
+REM ---- make sure nothing is holding our files ----
 call :port_busy 8000
 if not errorlevel 1 goto :still_running
 
@@ -33,50 +46,53 @@ echo   [1/5] preparing backup...
 if exist "%BACKUP%" rmdir /s /q "%BACKUP%"
 mkdir "%BACKUP%" 2>nul
 
-REM Your records. Backed up before anything is overwritten.
+REM Your records first. Nothing below this line can lose them.
 if exist "%CD%\backend\orbit.db" (
   copy /y "%CD%\backend\orbit.db" "%BACKUP%\orbit.db" >nul
   echo         orbit.db backed up
 )
-REM The code we are about to replace, so a failure can be undone.
-for %%D in (backend\app backend\alembic frontend\dist) do (
+for %%D in (%DIRS%) do (
   if exist "%CD%\%%D" (
     mkdir "%BACKUP%\%%D" 2>nul
     xcopy /e /i /q /y "%CD%\%%D" "%BACKUP%\%%D" >nul
   )
 )
+for %%F in (%LOOSE%) do (
+  if exist "%CD%\%%F" (
+    mkdir "%BACKUP%\%%~dpF" 2>nul
+    copy /y "%CD%\%%F" "%BACKUP%\%%F" >nul
+  )
+)
 
 echo   [2/5] copying new files...
-call :copy_tree "backend\app"
-call :copy_tree "backend\alembic"
-call :copy_tree "frontend\dist"
-call :copy_tree "frontend\src"
-call :copy_tree "frontend\public"
-for %%F in (start-orbit.bat apply-update.bat release.json README.md docker-compose.yml) do (
-  if exist "%FILES%\%%F" copy /y "%FILES%\%%F" "%CD%\%%F" >nul
+for %%D in (%DIRS%) do (
+  if exist "%FILES%\%%D" (
+    if not exist "%CD%\%%D" mkdir "%CD%\%%D" 2>nul
+    xcopy /e /i /q /y "%FILES%\%%D" "%CD%\%%D" >nul
+  )
 )
-for %%F in (alembic.ini pyproject.toml requirements.txt requirements.lock.txt requirements-dev.txt smoke_test.py) do (
-  if exist "%FILES%\backend\%%F" copy /y "%FILES%\backend\%%F" "%CD%\backend\%%F" >nul
+for %%F in (%LOOSE%) do (
+  if exist "%FILES%\%%F" (
+    mkdir "%CD%\%%~dpF" 2>nul
+    copy /y "%FILES%\%%F" "%CD%\%%F" >nul
+  )
 )
-if exist "%FILES%\backend\tests" (
-  if not exist "%CD%\backend\tests" mkdir "%CD%\backend\tests"
-  xcopy /e /i /q /y "%FILES%\backend\tests" "%CD%\backend\tests" >nul
-)
-if exist "%FILES%\frontend\package.json" copy /y "%FILES%\frontend\package.json" "%CD%\frontend\package.json" >nul
-if exist "%FILES%\frontend\package-lock.json" copy /y "%FILES%\frontend\package-lock.json" "%CD%\frontend\package-lock.json" >nul
 
-echo   [3/5] running database migrations...
+echo   [3/5] upgrading the database...
 if not exist "%CD%\backend\.venv\Scripts\python.exe" goto :skip_migrate
 pushd "%CD%\backend"
-".venv\Scripts\python.exe" -m alembic upgrade head
+REM app.db.migrate, not "alembic upgrade head": a database created by
+REM start-orbit.bat was made with create_all and has no alembic_version
+REM stamp, so a plain upgrade would replay 0001_initial and hit
+REM "table users already exists". That module detects and repairs it.
+".venv\Scripts\python.exe" -m app.db.migrate
 set "MIGRATED=!errorlevel!"
 popd
 if not "!MIGRATED!"=="0" goto :migrate_failed
-echo         migrations OK
 goto :after_migrate
 
 :skip_migrate
-echo         no local virtualenv - migrations will run on first start
+echo         no local virtualenv - migrations run on first start
 
 :after_migrate
 echo   [4/5] cleaning up...
@@ -98,12 +114,6 @@ exit /b 0
 REM ============================================================
 REM  subroutines
 REM ============================================================
-
-:copy_tree
-if not exist "%FILES%\%~1" exit /b 0
-if not exist "%CD%\%~1" mkdir "%CD%\%~1" 2>nul
-xcopy /e /i /q /y "%FILES%\%~1" "%CD%\%~1" >nul
-exit /b 0
 
 :port_busy
 netstat -ano | findstr ":%1" | findstr "LISTENING" >nul 2>nul
@@ -132,14 +142,18 @@ exit /b 1
 
 :migrate_failed
 echo.
-echo   [!] Database migration failed. Restoring the backup...
+echo   [!] Database upgrade failed. Rolling everything back...
 if exist "%BACKUP%\orbit.db" copy /y "%BACKUP%\orbit.db" "%CD%\backend\orbit.db" >nul
-for %%D in (backend\app backend\alembic frontend\dist) do (
+for %%D in (%DIRS%) do (
   if exist "%BACKUP%\%%D" xcopy /e /i /q /y "%BACKUP%\%%D" "%CD%\%%D" >nul
 )
+for %%F in (%LOOSE%) do (
+  if exist "%BACKUP%\%%F" copy /y "%BACKUP%\%%F" "%CD%\%%F" >nul
+)
 echo.
-echo   Your records were restored from update-backup\orbit.db
-echo   The program files were rolled back too. Nothing was lost.
+echo   Restored: orbit.db plus every program file that was replaced.
+echo   The staging folder is kept so you can retry after fixing the cause:
+echo     %STAGING%
 echo.
 pause
 exit /b 1

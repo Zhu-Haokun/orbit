@@ -45,12 +45,23 @@ def _enable_sqlite_foreign_keys(dbapi_connection: Any, connection_record: Any) -
 
 
 def init_db() -> None:
-    """Create every table from the ORM metadata. Used by the seed script only."""
+    """Create every table from the ORM metadata. Used by the seed script only.
+
+    ``create_all`` 只建表、**不写 ``alembic_version``**。如果不补这一笔，
+    用 ``start-orbit.bat`` 装出来的库在用户第一次更新时会失败：
+    ``alembic upgrade head`` 从 ``0001_initial`` 开始跑，撞上已存在的表。
+    所以建完表立刻标记到 head，让两条安装路径产出的库完全一致。
+    """
     # Importing the models module registers all mappers on ``Base.metadata``.
     from app import models  # noqa: F401  (side-effect import)
     from app.db.base import Base
 
     Base.metadata.create_all(bind=engine)
+
+    # 延迟导入：migrate 会反过来 import 本模块的 engine。
+    from app.db.migrate import stamp_head
+
+    stamp_head()
 
 
 def get_db() -> Generator[Session, None, None]:
