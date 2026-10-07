@@ -39,6 +39,19 @@ GENERIC_ERROR_DETAIL = "暂时没能完成这次操作，请稍后再试。"
 DIST_DIR = Path(__file__).resolve().parents[2] / "frontend" / "dist"
 
 
+class _ImmutableStatic(StaticFiles):
+    """带哈希文件名的静态资源可以永久缓存。
+
+    Vite 产出的 ``assets/index-z-gPWGJ9.js`` 里含有内容哈希 —— 内容一变、
+    文件名就变，所以让浏览器长期缓存是安全的，也让二次打开快得多。
+    """
+
+    def file_response(self, *args: object, **kwargs: object):  # type: ignore[override]
+        response = super().file_response(*args, **kwargs)  # type: ignore[arg-type]
+        response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        return response
+
+
 def _serve_built_frontend(target: FastAPI) -> None:
     """把 ``frontend/dist`` 挂到同一个应用上；没有构建产物就什么都不做。
 
@@ -46,16 +59,24 @@ def _serve_built_frontend(target: FastAPI) -> None:
     后注册的 catch-all 会抢走先注册的挂载点，上传的图片就会变成 index.html。
 
     前端的 API 基址是相对的 ``/api``，所以同源托管不需要任何额外配置。
+
+    **缓存策略是这个函数存在的一半理由。** 带哈希的 ``/assets/*`` 永久缓存，
+    但 ``index.html`` 必须每次回源校验 —— 否则用户更新完之后，浏览器还在用
+    旧页面引用的旧 chunk，界面看起来"更新了却没变化"，而且怎么刷新都没用
+    （这正是开发过程中真实发生过的一次）。
     """
     if not DIST_DIR.is_dir():
         return
 
     assets = DIST_DIR / "assets"
     if assets.is_dir():
-        target.mount("/assets", StaticFiles(directory=assets), name="assets")
+        target.mount("/assets", _ImmutableStatic(directory=assets), name="assets")
     index = DIST_DIR / "index.html"
     if not index.is_file():
         return
+
+    #: 入口 HTML 绝不缓存。内容很短，回源成本可以忽略。
+    no_store = {"Cache-Control": "no-cache, must-revalidate"}
 
     @target.get("/{full_path:path}", include_in_schema=False)
     async def spa(full_path: str) -> Response:
@@ -65,9 +86,9 @@ def _serve_built_frontend(target: FastAPI) -> None:
             return JSONResponse(status_code=404, content={"detail": "没有找到这个地址。"})
         candidate = DIST_DIR / full_path
         if full_path and candidate.is_file():
-            return FileResponse(candidate)
+            return FileResponse(candidate, headers=no_store)
         # 其余交给前端路由（React Router 的 history 模式）。
-        return FileResponse(index)
+        return FileResponse(index, headers=no_store)
 
     logger.info("已挂载前端构建产物：%s", DIST_DIR)
 
