@@ -7,6 +7,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import { Tooltip } from "@/components/ui/Tooltip";
 import { useIsTablet } from "@/hooks/useMediaQuery";
 import { useToday } from "@/hooks/useInsights";
+import { useUpdateNotice } from "@/hooks/useVersion";
 import { cn } from "@/lib/cn";
 import { useSessionStore } from "@/stores/sessionStore";
 import { useUiStore } from "@/stores/uiStore";
@@ -35,6 +36,8 @@ export function Sidebar() {
   const navigate = useNavigate();
 
   const { data: today } = useToday();
+  // 启动时后台查一次更新；只用来在「设置」上点个小圆点。
+  const updateNotice = useUpdateNotice();
   // 规范 §55: 只展示今天确实有待关注内容，最大 9+
   const attention = today?.headlineCount ?? 0;
   const badge = attention > 9 ? "9+" : attention > 0 ? String(attention) : null;
@@ -116,8 +119,21 @@ export function Sidebar() {
               expanded ? "" : "justify-center px-0",
             )}
           >
-            <Settings className="size-[18px] shrink-0" aria-hidden />
+            <span className="relative shrink-0">
+              <Settings className="size-[18px]" aria-hidden />
+              {/*
+                启动时后台查过一次更新；有新版本就点个小圆点。
+                只是一个提示 —— 详情在设置 → 关于，也绝不会自动下载。
+              */}
+              {updateNotice.hasUpdate && (
+                <span
+                  className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-accent"
+                  aria-hidden
+                />
+              )}
+            </span>
             {expanded && <span>设置</span>}
+            {updateNotice.hasUpdate && <span className="sr-only">有新版本可用</span>}
             {!expanded && <span className="sr-only">设置</span>}
           </button>
 
