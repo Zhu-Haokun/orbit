@@ -193,7 +193,11 @@ if (-not (Test-Path -LiteralPath $OutputDirectory)) {
 
 # 两种包必须用不同的文件名：它们内容不同（一个含 runtime 一个不含），
 # 同名会互相覆盖 —— 打完整安装包时会把刚打好的更新包冲掉。
-$packageName = if ($Handoff) { "orbit-$Version-完整安装包.zip" } else { "orbit-$Version.zip" }
+#
+# 一律用 ASCII 文件名：GitHub 的 Release 附件对非 ASCII 支持很差，
+# 「orbit-1.0.8-完整安装包.zip」会被它截成「orbit-1.0.8-..zip」，
+# 中文部分直接丢失，用户根本认不出那是哪个包。
+$packageName = if ($Handoff) { "orbit-$Version-full.zip" } else { "orbit-$Version.zip" }
 $packagePath = Join-Path $OutputDirectory $packageName
 if (Test-Path -LiteralPath $packagePath) { Remove-Item -LiteralPath $packagePath -Force }
 

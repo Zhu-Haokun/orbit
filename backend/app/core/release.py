@@ -254,16 +254,26 @@ def is_newer(candidate: str, current: str) -> bool:
 
 
 def _pick_zip_asset(assets: list[dict[str, Any]]) -> str | None:
-    """挑下载地址：优先「名字里带 orbit 的更新包」，否则任何 zip。
+    """挑下载地址：优先「最小的那个更新包」。
 
     同一个 Release 上可能挂两个附件：
 
-    * ``orbit-1.0.7.zip``              更新包，约 0.7 MB，给已有用户
-    * ``orbit-1.0.7-完整安装包.zip``    完整包，约 17 MB，给新用户第一次装
+    * ``orbit-1.0.8.zip``        更新包，约 0.7 MB，给已有用户
+    * ``orbit-1.0.8-full.zip``   完整包，约 17 MB，给新用户第一次装
 
-    GitHub 返回的顺序不保证，所以必须**显式排掉完整安装包** —— 否则老用户
-    会平白下载 17 MB（功能正常，但毫无必要，而且慢）。万一整个 Release 只有
-    完整包，那也只能将就，总比没有更新可用好。
+    GitHub 返回的顺序不保证，所以必须显式挑出更新包 —— 否则老用户会平白
+    下载 17 MB（功能正常，但毫无必要，而且慢）。
+
+    两道判据，缺一不可：
+
+    1. **按名字排除**已知的完整包写法（中文、full、setup…）
+    2. **在剩下的里面挑体积最小的**
+
+    第 2 条不是多余的：GitHub 存附件时会把**非 ASCII 文件名截断**，
+    「orbit-1.0.8-完整安装包.zip」会变成「orbit-1.0.8-..zip」—— 中文标记
+    正好丢光，第 1 条就失效了。体积不会骗人：完整包总是大二十倍。
+
+    万一整个 Release 只有一个附件，那就用它，总比没有更新可用好。
     """
     zips = [a for a in assets if str(a.get("name", "")).lower().endswith(".zip")]
     if not zips:
@@ -273,10 +283,21 @@ def _pick_zip_asset(assets: list[dict[str, Any]]) -> str | None:
         name = str(asset.get("name", "")).lower()
         return any(marker in name for marker in FULL_PACKAGE_MARKERS)
 
+    def size_of(asset: dict[str, Any]) -> int:
+        try:
+            return int(asset.get("size") or 0)
+        except (TypeError, ValueError):
+            return 0
+
     update_packages = [a for a in zips if not is_full_package(a)]
     pool = update_packages or zips
-    preferred = [a for a in pool if "orbit" in str(a.get("name", "")).lower()]
-    chosen = (preferred or pool)[0]
+    # size 缺失时按 0 处理会让人误以为它最小，所以只在都有 size 时比较；
+    # 否则退回「名字里带 orbit」这个旧判据。
+    if all(size_of(a) > 0 for a in pool):
+        chosen = min(pool, key=size_of)
+    else:
+        preferred = [a for a in pool if "orbit" in str(a.get("name", "")).lower()]
+        chosen = (preferred or pool)[0]
     url = chosen.get("browser_download_url")
     return str(url) if url else None
 
