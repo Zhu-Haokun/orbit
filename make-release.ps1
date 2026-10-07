@@ -190,7 +190,11 @@ $excludePattern = ($excludes -join '|')
 if (-not (Test-Path -LiteralPath $OutputDirectory)) {
     New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
 }
-$packagePath = Join-Path $OutputDirectory "orbit-$Version.zip"
+
+# 两种包必须用不同的文件名：它们内容不同（一个含 runtime 一个不含），
+# 同名会互相覆盖 —— 打完整安装包时会把刚打好的更新包冲掉。
+$packageName = if ($Handoff) { "orbit-$Version-完整安装包.zip" } else { "orbit-$Version.zip" }
+$packagePath = Join-Path $OutputDirectory $packageName
 if (Test-Path -LiteralPath $packagePath) { Remove-Item -LiteralPath $packagePath -Force }
 
 # 先把要打的文件收集起来，顺便统计
