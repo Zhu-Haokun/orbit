@@ -13,6 +13,7 @@ Orbit 是本地软件：代码可以更新，数据永远留在使用者的机�
 from __future__ import annotations
 
 import json
+import os
 import re
 import zipfile
 from dataclasses import dataclass, field
@@ -33,6 +34,65 @@ GITHUB_API = "https://api.github.com"
 CHECK_TIMEOUT_SECONDS = 8.0
 #: 下载安装包通常更大，给宽一点。
 DOWNLOAD_TIMEOUT_SECONDS = 120.0
+
+
+def _system_proxy() -> str | None:
+    """读 Windows 系统代理，转成 httpx 能用的 URL。
+
+    这一条是**必需的**，不是锦上添花：浏览器走的是系统代理（注册表里的
+    ``Internet Settings``），而 Python 的 httpx 只认 ``HTTP_PROXY`` /
+    ``HTTPS_PROXY`` 环境变量。两者不一致时就会出现最费解的现象 ——
+    「我浏览器明明能打开 GitHub，应用却说连不上」。
+
+    只在 Windows 上读注册表；其它平台交给 httpx 自己看环境变量。
+    """
+    if os.name != "nt":
+        return None
+
+    try:
+        import winreg
+
+        path = r"Software\Microsoft\Windows\CurrentVersion\Internet Settings"
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, path) as key:
+            enabled, _ = winreg.QueryValueEx(key, "ProxyEnable")
+            if not enabled:
+                return None
+            server, _ = winreg.QueryValueEx(key, "ProxyServer")
+    except (OSError, ImportError):
+        return None
+
+    server = str(server or "").strip()
+    if not server:
+        return None
+
+    # 两种写法都要认：
+    #   "127.0.0.1:7890"
+    #   "http=127.0.0.1:7890;https=127.0.0.1:7891"
+    if "=" in server:
+        parts: dict[str, str] = {}
+        for chunk in server.split(";"):
+            name, _, value = chunk.partition("=")
+            if value:
+                parts[name.strip().lower()] = value.strip()
+        server = parts.get("https") or parts.get("http") or ""
+        if not server:
+            return None
+
+    if not server.startswith(("http://", "https://")):
+        server = f"http://{server}"
+    return server
+
+
+def _client(timeout: float, *, follow_redirects: bool = True) -> httpx.Client:
+    """统一构造 httpx 客户端，带上系统代理。
+
+    ``trust_env=True`` 保留 env 变量那条路（在 Linux/macOS 或用户显式设置
+    HTTPS_PROXY 时有用）；系统代理存在时显式传参，优先级更高。
+    """
+    proxy = _system_proxy()
+    if proxy:
+        return httpx.Client(timeout=timeout, follow_redirects=follow_redirects, proxy=proxy)
+    return httpx.Client(timeout=timeout, follow_redirects=follow_redirects, trust_env=True)
 
 #: 更新包里允许出现的路径前缀。别的文件一律忽略，避免把用户的
 #: 数据或环境覆盖掉（防御性：即使发布的 ZIP 打包错了也不会出事）。
@@ -161,7 +221,7 @@ def fetch_latest(repository: str) -> LatestRelease:
     headers = {"Accept": "application/vnd.github+json", "User-Agent": "orbit-update-check"}
 
     try:
-        with httpx.Client(timeout=CHECK_TIMEOUT_SECONDS, follow_redirects=True) as client:
+        with _client(CHECK_TIMEOUT_SECONDS) as client:
             response = client.get(url, headers=headers)
     except httpx.HTTPError as exc:
         raise ReleaseError(f"连不上 GitHub：{exc.__class__.__name__}") from exc
@@ -203,7 +263,7 @@ def _fetch_latest_via_html(repository: str) -> LatestRelease:
     headers = {"User-Agent": "orbit-update-check"}
 
     try:
-        with httpx.Client(timeout=CHECK_TIMEOUT_SECONDS, follow_redirects=False) as client:
+        with _client(CHECK_TIMEOUT_SECONDS, follow_redirects=False) as client:
             redirect = client.get(f"{base}/releases/latest", headers=headers)
             location = redirect.headers.get("location", "")
             match = re.search(r"/releases/tag/([^/?#]+)", location)
@@ -282,7 +342,7 @@ def stage_update(download_url: str) -> dict[str, Any]:
 
     try:
         with (
-            httpx.Client(timeout=DOWNLOAD_TIMEOUT_SECONDS, follow_redirects=True) as client,
+            _client(DOWNLOAD_TIMEOUT_SECONDS) as client,
             client.stream("GET", download_url) as response,
         ):
             if response.status_code >= 400:
