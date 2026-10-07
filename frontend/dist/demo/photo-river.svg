@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" width="640" height="400">
+  <rect width="640" height="400" fill="#141822"/>
+  <!-- 天空里的云与鸟 -->
+  <path d="M 64 92 C 108 78 152 88 196 80" fill="none" stroke="rgba(139,140,255,0.35)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 440 52 C 484 42 528 52 566 44" fill="none" stroke="rgba(139,140,255,0.35)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 250 118 C 280 110 310 116 338 110" fill="none" stroke="rgba(139,140,255,0.14)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 146 150 C 154 140 162 140 170 150 C 178 140 186 140 194 150" fill="none" stroke="#FFFFFF" stroke-opacity="0.35" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 206 126 C 212 119 218 119 224 126 C 230 119 236 119 242 126" fill="none" stroke="#FFFFFF" stroke-opacity="0.28" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- 落日 -->
+  <circle cx="430" cy="156" r="54" fill="rgba(139,140,255,0.14)" stroke="#8B8CFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 379 138 A 54 54 0 0 1 412 105" fill="none" stroke="#FFFFFF" stroke-opacity="0.5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- 远处低矮的山 -->
+  <path d="M 0 210 C 40 190 90 186 128 202 C 146 178 182 174 210 198 C 230 188 246 194 262 210 Z" fill="rgba(139,140,255,0.14)" stroke="#8B8CFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 440 210 C 472 192 504 188 532 202 C 558 190 600 192 640 210 Z" fill="rgba(139,140,255,0.14)" stroke="#8B8CFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- 岸边的两棵树 -->
+  <path d="M 150 202 L 150 172" fill="none" stroke="#8B8CFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="150" cy="157" r="15" fill="rgba(139,140,255,0.14)" stroke="#8B8CFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 178 200 L 178 184" fill="none" stroke="rgba(139,140,255,0.35)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="178" cy="175" r="10" fill="none" stroke="rgba(139,140,255,0.35)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- 水平线 -->
+  <path d="M 0 210 L 640 210" fill="none" stroke="#8B8CFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- 水面：落日倒影的弧 -->
+  <path d="M 405 216 A 52 52 0 0 0 455 216" fill="none" stroke="rgba(139,140,255,0.35)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- 水面：横向波纹反光 -->
+  <path d="M 402 234 L 458 234" fill="none" stroke="#8B8CFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 386 252 L 474 252" fill="none" stroke="rgba(139,140,255,0.35)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 398 272 L 462 272" fill="none" stroke="#8B8CFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 410 292 L 450 292" fill="none" stroke="rgba(139,140,255,0.35)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 390 314 L 470 314" fill="none" stroke="rgba(139,140,255,0.35)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 404 338 L 456 338" fill="none" stroke="#8B8CFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 414 360 L 446 360" fill="none" stroke="rgba(139,140,255,0.35)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 68 246 L 168 246" fill="none" stroke="rgba(139,140,255,0.35)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 96 276 L 206 276" fill="none" stroke="rgba(139,140,255,0.14)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 48 306 L 150 306" fill="none" stroke="rgba(139,140,255,0.35)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 108 336 L 196 336" fill="none" stroke="rgba(139,140,255,0.14)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 64 362 L 152 362" fill="none" stroke="rgba(139,140,255,0.14)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 484 264 L 592 264" fill="none" stroke="rgba(139,140,255,0.35)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 496 300 L 600 300" fill="none" stroke="rgba(139,140,255,0.14)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 476 330 L 566 330" fill="none" stroke="rgba(139,140,255,0.35)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 512 358 L 604 358" fill="none" stroke="rgba(139,140,255,0.14)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

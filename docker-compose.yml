@@ -1,0 +1,32 @@
+# 规范 §7 docker-compose.yml
+#
+# 本地开发默认使用 SQLite（backend/.env 里的 DATABASE_URL=sqlite:///./orbit.db），
+# 不需要跑这个文件。需要 PostgreSQL 时：
+#
+#   docker compose up -d
+#   然后把 backend/.env 改成
+#   DATABASE_URL=postgresql+psycopg://orbit:orbit@localhost:5432/orbit
+#
+# 数据访问层使用可移植的 GUID / Enum 类型，SQLite 与 PostgreSQL 之间只需改这一个变量。
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: orbit-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: orbit
+      POSTGRES_PASSWORD: orbit
+      POSTGRES_DB: orbit
+    ports:
+      - "5432:5432"
+    volumes:
+      - orbit-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U orbit -d orbit"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  orbit-pgdata:

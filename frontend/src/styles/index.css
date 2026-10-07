@@ -1,0 +1,544 @@
+@import "tailwindcss";
+
+/* ==================================================================
+ * Orbit / 人情星图 —— Design Tokens
+ * 规范 §10: 所有颜色、字号、圆角、阴影、间距必须通过 token 实现。
+ * ================================================================== */
+
+:root {
+  /* --- Background (§10.1) ---
+   *
+   * 背景系统分三层（产品文档「背景层次」）：
+   *   base    —— 最远的底色
+   *   canvas  —— 页面主背景（比 base 略抬一点，让内容"浮"在纸上）
+   *   reading —— 正文阅读场（只覆盖主列，让视线停在文字上）
+   *   surface / elevated / soft —— 卡片与输入等真正的内容表面
+   */
+  --bg-base: #080a0f;
+  --bg-canvas: #0b0e14;
+  --bg-reading: rgba(18, 22, 31, 0.72);
+  --bg-surface: #0e1118;
+  --bg-elevated: #141822;
+  --bg-soft: #181d28;
+
+  /* 材质：极低对比，用户关掉才会意识到差别 */
+  --bg-texture-opacity: 0.02;
+  --bg-ambient-opacity: 0.05;
+  --ambient-tint: 139, 140, 255;
+
+  /* --- Border --- */
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.1);
+  --border-hover: rgba(255, 255, 255, 0.16);
+
+  /* --- Text --- */
+  --text-primary: rgba(255, 255, 255, 0.94);
+  --text-secondary: rgba(255, 255, 255, 0.62);
+  --text-tertiary: rgba(255, 255, 255, 0.38);
+  --text-disabled: rgba(255, 255, 255, 0.24);
+
+  /* --- Accent: 主色只允许一种 --- */
+  --accent: #8b8cff;
+  --accent-hover: #9c9dff;
+  --accent-soft: rgba(139, 140, 255, 0.14);
+  --accent-border: rgba(139, 140, 255, 0.28);
+  /* 规范 §39.1: Primary 按钮为 accent 背景 + 深色文字 */
+  --on-accent: #0b0d12;
+
+  /* --- Semantic: 只用于状态，不做大面积背景 --- */
+  --success: #72d6a0;
+  --warning: #e6be74;
+  --danger: #e98989;
+  --info: #7cb7f5;
+
+  /* --- 规范 §12 Hover: bg rgba(255,255,255,.04) --- */
+  --hover-fill: rgba(255, 255, 255, 0.04);
+  --press-fill: rgba(255, 255, 255, 0.07);
+
+  /* --- Radius (§10.4) --- */
+  --r-xs: 6px;
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 20px;
+  --r-pill: 999px;
+
+  /* --- Shadow (§10.6) --- */
+  --shadow-soft: 0 12px 40px rgba(0, 0, 0, 0.24);
+  --shadow-drawer: 0 0 50px rgba(0, 0, 0, 0.35);
+  --overlay-scrim: rgba(0, 0, 0, 0.56);
+
+  /* --- Motion (§11) --- */
+  --ease-orbit: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-hover: 140ms;
+  --dur-press: 100ms;
+  --dur-modal: 220ms;
+  --dur-drawer: 260ms;
+  --dur-page: 300ms;
+  --dur-galaxy: 600ms;
+
+  /* --- Layout (§9 / §41) --- */
+  --sidebar-w: 232px;
+  --sidebar-w-tablet: 72px;
+  --tabbar-h: 68px;
+
+  /* --- Galaxy (§14.2) --- */
+  --galaxy-surface: rgba(14, 17, 24, 0.82);
+  --line-galaxy: rgba(255, 255, 255, 0.08);
+  --line-galaxy-active: rgba(255, 255, 255, 0.28);
+}
+
+/* 规范 §36.1: 深色为默认，跟随系统时使用同一套 token 的浅色取值。 */
+[data-theme="light"] {
+  --bg-base: #f5f6fa;
+  --bg-canvas: #eef0f6;
+  --bg-reading: rgba(255, 255, 255, 0.72);
+  --bg-surface: #ffffff;
+  --bg-elevated: #ffffff;
+  --bg-soft: #eceef4;
+  --bg-texture-opacity: 0.012;
+  --bg-ambient-opacity: 0.03;
+
+  --border-subtle: rgba(16, 19, 32, 0.07);
+  --border-default: rgba(16, 19, 32, 0.12);
+  --border-hover: rgba(16, 19, 32, 0.2);
+
+  --text-primary: rgba(16, 19, 32, 0.92);
+  --text-secondary: rgba(16, 19, 32, 0.6);
+  --text-tertiary: rgba(16, 19, 32, 0.42);
+  --text-disabled: rgba(16, 19, 32, 0.28);
+
+  --accent: #5b5ce0;
+  --accent-hover: #4a4bd2;
+  --accent-soft: rgba(91, 92, 224, 0.1);
+  --accent-border: rgba(91, 92, 224, 0.26);
+  --on-accent: #ffffff;
+
+  --hover-fill: rgba(16, 19, 32, 0.045);
+  --press-fill: rgba(16, 19, 32, 0.08);
+
+  --shadow-soft: 0 12px 40px rgba(16, 19, 32, 0.09);
+  --shadow-drawer: 0 0 50px rgba(16, 19, 32, 0.14);
+  --overlay-scrim: rgba(16, 19, 32, 0.4);
+
+  --galaxy-surface: rgba(255, 255, 255, 0.86);
+  --line-galaxy: rgba(16, 19, 32, 0.1);
+  --line-galaxy-active: rgba(16, 19, 32, 0.32);
+}
+
+/* ------------------------------------------------------------------ *
+ * 背景氛围（产品文档「背景层次与主题自定义」）
+ *
+ * 只提供经过可读性验证的少数预设，不做任意图片背景：
+ * 图片背景的亮暗不可控，会直接破坏正文可读性，也会给私人内容增加
+ * 存储与隐私边界。氛围只改色温与材质强度，不改结构、不带动画。
+ * ------------------------------------------------------------------ */
+
+/* 深夜轨道（默认）：近黑底 + 冷灰表面 + 紫色焦点，就是现在这套。 */
+[data-background="orbit"] {
+  --ambient-tint: 139, 140, 255;
+}
+
+/* 墨纸：黑色里掺一点暖灰，像夜间相册。文字仍然是中性白灰，不做复古滤镜。 */
+[data-background="ink"] {
+  --bg-base: #0c0b0d;
+  --bg-canvas: #121114;
+  --bg-reading: rgba(30, 27, 29, 0.72);
+  --bg-surface: #16141a;
+  --bg-elevated: #1d1a20;
+  --bg-soft: #242028;
+  --ambient-tint: 214, 186, 150;
+  --bg-texture-opacity: 0.028;
+  --bg-ambient-opacity: 0.06;
+}
+
+/* 雾蓝：极低饱和的蓝灰远景。蓝色只做远景，不做深蓝仪表盘。 */
+[data-background="mist"] {
+  --bg-base: #070a10;
+  --bg-canvas: #0a0f18;
+  --bg-reading: rgba(16, 24, 36, 0.72);
+  --bg-surface: #0d131d;
+  --bg-elevated: #131a26;
+  --bg-soft: #18202e;
+  --ambient-tint: 120, 170, 220;
+  --bg-texture-opacity: 0.02;
+  --bg-ambient-opacity: 0.07;
+}
+
+/* ------------------------------------------------------------------ *
+ * 背景材质：一层固定的环境光 + 一层极淡颗粒。
+ *
+ * 全部由 CSS 生成（不使用图片资源），滚动时完全静止，不产生视差。
+ * 对比度低到用户关掉才会意识到差别 —— 它是"表面"，不是"特效"。
+ * ------------------------------------------------------------------ */
+.orbit-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-color: var(--bg-base);
+}
+
+/* 远景：非常宽、非常柔的色温变化。 */
+.orbit-backdrop::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(
+      120% 80% at 50% -10%,
+      rgba(var(--ambient-tint), var(--bg-ambient-opacity)) 0%,
+      transparent 60%
+    );
+}
+
+/* 颗粒：用两个错位的斜向条纹模拟极细的纸面噪声，比引一张纹理图更省。 */
+.orbit-backdrop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: var(--bg-texture-opacity);
+  background-image:
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.6) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(-45deg, rgba(0, 0, 0, 0.5) 0 1px, transparent 1px 3px);
+}
+
+/* 移动端与低性能设备只保留颜色层级，关掉颗粒。 */
+@media (max-width: 640px) {
+  .orbit-backdrop::after {
+    display: none;
+  }
+}
+
+/* 阅读场：内容页的主列坐在略亮的表面上，时间线两侧仍然更暗。 */
+.orbit-reading-field {
+  background-color: var(--bg-reading);
+  border-radius: var(--radius-lg, 12px);
+}
+
+
+
+/* ------------------------------------------------------------------ *
+ * Tailwind theme mapping —— 让工具类直接消费上面的 token
+ * ------------------------------------------------------------------ */
+
+@theme inline {
+  --font-sans: Inter, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+
+  /*
+   * 三层字体语气（产品升级文档「UI 和字体升级方案」）。
+   *
+   * 全站一直只有一套无衬线，结果标题和正文是同一个语气，
+   * 所有页面看起来都像"同一种工具页面"。这里只补一层"展示语气"：
+   * 回忆标题、月份、人物的重要时刻用衬线，操作/输入/状态仍然无衬线。
+   *
+   * 全部走系统已有字体、不请求外部 Google Fonts —— 网络受限时不会失败。
+   */
+  --font-display: "Noto Serif SC", "Source Han Serif SC", "Songti SC", STSong, "SimSun", serif;
+  --font-data: Inter, "SF Mono", "Roboto Mono", ui-monospace, monospace;
+
+  --color-base: var(--bg-base);
+  --color-canvas: var(--bg-canvas);
+  --color-reading: var(--bg-reading);
+  --color-surface: var(--bg-surface);
+  --color-elevated: var(--bg-elevated);
+  --color-soft: var(--bg-soft);
+  --color-hover-fill: var(--hover-fill);
+  --color-press-fill: var(--press-fill);
+  --color-scrim: var(--overlay-scrim);
+
+  --color-line-subtle: var(--border-subtle);
+  --color-line: var(--border-default);
+  --color-line-hover: var(--border-hover);
+
+  --color-ink: var(--text-primary);
+  --color-ink-2: var(--text-secondary);
+  --color-ink-3: var(--text-tertiary);
+  --color-ink-4: var(--text-disabled);
+
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-border: var(--accent-border);
+  --color-on-accent: var(--on-accent);
+
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-info: var(--info);
+
+  --radius-xs: var(--r-xs);
+  --radius-sm: var(--r-sm);
+  --radius-md: var(--r-md);
+  --radius-lg: var(--r-lg);
+  --radius-xl: var(--r-xl);
+  --radius-pill: var(--r-pill);
+
+  --shadow-soft: var(--shadow-soft);
+  --shadow-drawer: var(--shadow-drawer);
+
+  /* Type scale —— 规范 §10.3 */
+  --text-display: 36px;
+  --text-display--line-height: 44px;
+  --text-display--font-weight: 600;
+  --text-h1: 28px;
+  --text-h1--line-height: 36px;
+  --text-h1--font-weight: 600;
+  --text-h2: 22px;
+  --text-h2--line-height: 30px;
+  --text-h2--font-weight: 600;
+  --text-h3: 18px;
+  --text-h3--line-height: 26px;
+  --text-h3--font-weight: 600;
+  --text-lg: 16px;
+  --text-lg--line-height: 26px;
+  --text-lg--font-weight: 400;
+  --text-body: 14px;
+  --text-body--line-height: 22px;
+  --text-body--font-weight: 400;
+  --text-sm: 12px;
+  --text-sm--line-height: 18px;
+  --text-sm--font-weight: 400;
+  --text-micro: 11px;
+  --text-micro--line-height: 16px;
+  --text-micro--font-weight: 500;
+
+  --ease-orbit: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ==================================================================
+ * Base
+ * ================================================================== */
+
+@layer base {
+  * {
+    border-color: var(--border-subtle);
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  html {
+    background-color: var(--bg-base);
+    color-scheme: dark;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  [data-theme="light"] {
+    color-scheme: light;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 22px;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overscroll-behavior-y: none;
+  }
+
+  /* 规范 §39.3: 不要默认蓝色浏览器 outline，但必须保留无障碍 focus ring */
+  :focus-visible {
+    outline: 2px solid var(--accent-border);
+    outline-offset: 2px;
+    border-radius: var(--r-xs);
+  }
+
+  ::selection {
+    background: var(--accent-soft);
+    color: var(--text-primary);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-weight: 600;
+    margin: 0;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  button {
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+  }
+
+  input,
+  textarea,
+  select {
+    font-family: inherit;
+    color: inherit;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-default);
+    border: 3px solid transparent;
+    background-clip: content-box;
+    border-radius: var(--r-pill);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--border-hover);
+    background-clip: content-box;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* ==================================================================
+ * Utilities —— 少量跨页面复用、但用工具类表达会很啰嗦的部分
+ * ================================================================== */
+
+@utility glass-panel {
+  background: var(--galaxy-surface);
+  backdrop-filter: blur(18px) saturate(1.1);
+  -webkit-backdrop-filter: blur(18px) saturate(1.1);
+}
+
+@utility glass-drawer {
+  background: var(--galaxy-surface);
+  backdrop-filter: blur(20px) saturate(1.1);
+  -webkit-backdrop-filter: blur(20px) saturate(1.1);
+}
+
+/** 星图底部的柔光，规范 §14.2: 非常轻的径向柔光 */
+@utility galaxy-glow {
+  background:
+    radial-gradient(60% 50% at 50% 42%, var(--accent-soft) 0%, transparent 68%),
+    radial-gradient(40% 36% at 22% 78%, rgba(124, 183, 245, 0.05) 0%, transparent 70%);
+}
+
+/** 规范 §40.1: 低对比 skeleton，禁止大面积闪烁 */
+@utility skeleton {
+  background: linear-gradient(90deg, var(--bg-soft) 0%, var(--bg-elevated) 50%, var(--bg-soft) 100%);
+  background-size: 200% 100%;
+  animation: orbit-skeleton 1.8s var(--ease-orbit) infinite;
+  border-radius: var(--r-sm);
+}
+
+/** 底部安全区，规范 §9.3 / §84 */
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+@utility scroll-quiet {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-default) transparent;
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@keyframes orbit-skeleton {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/** 规范 §11 page enter 300ms —— 慢一点、轻一点。 */
+@keyframes orbit-page {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ==================================================================
+ * 星图夜空（§14.2 背景星点不可交互）
+ *
+ * 每颗星有自己的最暗/最亮区间与呼吸周期（1.6–6.5 秒），负延迟错开相位，
+ * 所以是"整片夜空在呼吸"，不会整片一起亮。
+ * ================================================================== */
+
+.orbit-starfield {
+  animation: orbit-starfield-in 800ms var(--ease-orbit) both;
+}
+
+.orbit-star {
+  opacity: var(--star-floor, 0.08);
+  animation-name: orbit-twinkle;
+  animation-duration: var(--star-duration, 4s);
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+@keyframes orbit-twinkle {
+  0%,
+  100% {
+    opacity: var(--star-floor, 0.08);
+  }
+  50% {
+    opacity: var(--star-ceil, 0.5);
+  }
+}
+
+@keyframes orbit-starfield-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+
+  /*
+   * 星空的呼吸刻意豁免上面那条全局规则。
+   * 它只有透明度变化、没有任何位移或缩放，不会引发前庭不适；
+   * 而"夜空在呼吸"是这个产品的气氛本身，关掉就只剩一块黑。
+   * 需要彻底静止的话，把这一块删掉即可。
+   */
+  .orbit-starfield {
+    animation: none !important;
+  }
+
+  .orbit-star {
+    animation-duration: var(--star-duration, 4s) !important;
+    animation-iteration-count: infinite !important;
+  }
+}

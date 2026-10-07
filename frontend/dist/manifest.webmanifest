@@ -1,0 +1,20 @@
+{
+  "name": "Orbit 人情星图",
+  "short_name": "Orbit",
+  "description": "把人与人之间，那些容易忘记的小事留住。",
+  "start_url": "/galaxy",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#080A0F",
+  "theme_color": "#080A0F",
+  "lang": "zh-CN",
+  "icons": [
+    {
+      "src": "/orbit.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

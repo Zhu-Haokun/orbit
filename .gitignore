@@ -1,0 +1,53 @@
+# ---------------------------------------------------------------------------
+# Orbit / 人情星图
+#
+# 这里排除的东西只有两类：**你的数据**，和**可以重新生成的东西**。
+# 两者都不该进版本库 —— 前者是隐私，后者是噪声。
+# ---------------------------------------------------------------------------
+
+# --- 你的记录：绝对不要提交 ---
+backend/orbit.db
+backend/orbit.db-journal
+backend/orbit.db-wal
+backend/uploads/
+!backend/uploads/.gitkeep
+update-staging/
+update-backup/
+
+# --- 本地配置（含 JWT_SECRET）---
+.env
+.env.local
+backend/.env
+
+# --- 依赖 ---
+node_modules/
+.pnpm-store/
+.npm-cache/
+.venv/
+venv/
+*.egg-info/
+
+# --- 构建 / 缓存产物 ---
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.tsbuildinfo
+build/
+
+# 注意：frontend/dist 是**故意提交**的（见 README「为什么仓库里有 dist」），
+# 所以这里不排除 dist/，只排除别处的构建目录。
+
+# --- 编辑器 / 系统 ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# --- 日志 ---
+*.log
+npm-debug.log*
+
+# --- 零安装包：体积大且与 Python 版本绑定，走 Release 附件而不是仓库 ---
+runtime/

@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" width="640" height="400">
+  <rect width="640" height="400" fill="#141822"/>
+  <!-- 桌面边缘 -->
+  <path d="M 0 352 L 640 352" fill="none" stroke="rgba(139,140,255,0.35)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- 机身落在桌上的影子 -->
+  <ellipse cx="280" cy="336" rx="170" ry="13" fill="rgba(139,140,255,0.14)" stroke="rgba(139,140,255,0.35)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- 机身 -->
+  <rect x="130" y="175" width="300" height="150" rx="20" fill="rgba(139,140,255,0.14)" stroke="#8B8CFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 130 215 L 430 215" fill="none" stroke="rgba(139,140,255,0.35)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- 机身左上角的小窗 -->
+  <rect x="152" y="225" width="48" height="36" rx="8" fill="rgba(139,140,255,0.14)" stroke="rgba(139,140,255,0.35)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- 镜头 -->
+  <circle cx="275" cy="252" r="60" fill="rgba(139,140,255,0.14)" stroke="#8B8CFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="275" cy="252" r="42" fill="none" stroke="rgba(139,140,255,0.35)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="275" cy="252" r="24" fill="rgba(139,140,255,0.35)" stroke="#8B8CFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 252 244 A 24 24 0 0 1 271 228" fill="none" stroke="#FFFFFF" stroke-opacity="0.5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- 顶部取景器 -->
+  <path d="M 315 175 L 326 146 L 374 146 L 385 175 Z" fill="rgba(139,140,255,0.14)" stroke="#8B8CFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="334" y="151" width="32" height="16" rx="4" fill="none" stroke="rgba(139,140,255,0.35)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- 顶部快门按钮与倒片旋钮 -->
+  <circle cx="170" cy="163" r="11" fill="rgba(139,140,255,0.35)" stroke="#8B8CFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="400" cy="164" r="10" fill="none" stroke="rgba(139,140,255,0.35)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- 背带挂环 -->
+  <rect x="416" y="186" width="14" height="22" rx="6" fill="rgba(139,140,255,0.35)" stroke="#8B8CFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- 垂下来的相机背带 -->
+  <path d="M 430 214 C 476 224 500 248 500 280 C 500 310 480 328 452 338" fill="none" stroke="rgba(139,140,255,0.35)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 430 190 C 490 198 524 232 524 278 C 524 318 498 342 466 352" fill="none" stroke="#8B8CFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 430 190 L 430 214" fill="none" stroke="rgba(139,140,255,0.35)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 466 352 L 452 338" fill="none" stroke="rgba(139,140,255,0.35)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- 背带上的高光 -->
+  <path d="M 452 226 C 486 240 502 262 500 288" fill="none" stroke="#FFFFFF" stroke-opacity="0.28" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" width="640" height="400">
+  <rect width="640" height="400" fill="#141822"/>
+  <!-- 桌面：淡淡的圆形桌垫 -->
+  <circle cx="240" cy="205" r="140" fill="rgba(139,140,255,0.14)" stroke="rgba(139,140,255,0.35)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- 碟子 -->
+  <circle cx="240" cy="205" r="112" fill="none" stroke="#8B8CFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="240" cy="205" r="95" fill="none" stroke="rgba(139,140,255,0.35)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- 杯口（俯视） -->
+  <circle cx="240" cy="205" r="76" fill="rgba(139,140,255,0.14)" stroke="#8B8CFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="240" cy="205" r="62" fill="none" stroke="rgba(139,140,255,0.35)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- 杯沿高光 -->
+  <path d="M 167 185 A 76 76 0 0 1 208 136" fill="none" stroke="#FFFFFF" stroke-opacity="0.5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- 奶泡拉花：一颗心 -->
+  <path d="M 240 252 C 196 220 204 176 240 200 C 276 176 284 220 240 252 Z" fill="rgba(139,140,255,0.35)" stroke="#FFFFFF" stroke-opacity="0.5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- 咖啡面上零星的奶泡点 -->
+  <circle cx="285" cy="170" r="5" fill="rgba(139,140,255,0.35)"/>
+  <circle cx="292" cy="192" r="4" fill="rgba(139,140,255,0.35)"/>
+  <circle cx="206" cy="250" r="4" fill="rgba(139,140,255,0.35)"/>
+  <!-- 摊开的书 -->
+  <path d="M 392 168 C 418 156 444 156 470 172 L 470 320 C 444 304 418 304 392 316 Z" fill="rgba(139,140,255,0.14)" stroke="#8B8CFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 470 172 C 496 156 522 156 548 168 L 548 316 C 522 304 496 304 470 320 Z" fill="rgba(139,140,255,0.14)" stroke="#8B8CFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- 书脊与页边 -->
+  <path d="M 470 172 L 470 320" fill="none" stroke="rgba(139,140,255,0.35)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 384 176 L 384 310" fill="none" stroke="rgba(139,140,255,0.35)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 556 176 L 556 310" fill="none" stroke="rgba(139,140,255,0.35)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- 书页上的几行字（示意） -->
+  <path d="M 404 206 C 422 198 438 198 456 206" fill="none" stroke="rgba(139,140,255,0.35)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 404 232 C 422 224 438 224 456 232" fill="none" stroke="rgba(139,140,255,0.35)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 404 258 C 422 250 438 250 456 258" fill="none" stroke="rgba(139,140,255,0.35)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 484 206 C 502 198 518 198 536 206" fill="none" stroke="rgba(139,140,255,0.35)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 484 232 C 502 224 518 224 536 232" fill="none" stroke="rgba(139,140,255,0.35)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 484 258 C 502 250 518 250 536 258" fill="none" stroke="rgba(139,140,255,0.35)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- 旁边散落的咖啡豆 -->
+  <g transform="rotate(-24 104 96)">
+    <ellipse cx="104" cy="96" rx="18" ry="12" fill="rgba(139,140,255,0.14)" stroke="rgba(139,140,255,0.35)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M 88 96 C 96 90 112 102 120 96" fill="none" stroke="rgba(139,140,255,0.35)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <g transform="rotate(18 146 72)">
+    <ellipse cx="146" cy="72" rx="18" ry="12" fill="none" stroke="rgba(139,140,255,0.35)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M 130 72 C 138 66 154 78 162 72" fill="none" stroke="rgba(139,140,255,0.35)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <g transform="rotate(-8 84 140)">
+    <ellipse cx="84" cy="140" rx="18" ry="12" fill="none" stroke="rgba(139,140,255,0.35)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M 68 140 C 76 134 92 146 100 140" fill="none" stroke="rgba(139,140,255,0.35)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <!-- 碟沿的反光 -->
+  <path d="M 345.3 243.3 A 112 112 0 0 1 278.3 310.3" fill="none" stroke="#FFFFFF" stroke-opacity="0.28" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

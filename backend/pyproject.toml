@@ -1,0 +1,41 @@
+[tool.ruff]
+# 代码风格配置（规范 §90：Python formatter / 单文件不超过约 350 行）。
+line-length = 120
+target-version = "py312"
+src = ["app", "tests"]
+exclude = [".venv", "alembic/versions"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "UP",  # pyupgrade
+    "SIM", # flake8-simplify
+]
+ignore = [
+    # 中文注释与 docstring 里难免出现全角标点，不做行尾空格以外的吹毛求疵。
+    "E501", # 行长由 line-length 兜底，长中文 docstring 单独放过
+    # FastAPI 的依赖注入就是“在默认参数里调用函数”，这是框架约定不是 bug。
+    "B008",
+    # Enum 刻意写成 class X(str, Enum)：SQLAlchemy 的 sa.Enum 需要它，
+    # 换成 StrEnum 会改变列类型推断，收益不足以冒这个风险。
+    "UP042",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# 迁移文件允许长行与未使用的元数据变量名。
+"alembic/**" = ["E501", "F401"]
+# 测试里经常需要“先建立一个对象”而不使用返回值。
+"tests/**" = ["B011", "SIM117"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+combine-as-imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+filterwarnings = ["ignore::DeprecationWarning"]

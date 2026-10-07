@@ -1,0 +1,47 @@
+# Orbit backend -- 精确版本锁（由可用环境 pip freeze 导出）
+#
+# 为什么要这个文件：requirements.txt 用的是开放式区间（fastapi>=0.115 等），
+# pip 的依赖求解器在部分机器上会无限回溯 —— 实测 10 分钟 CPU 占满、一个包都装不进去。
+# 全部钉死到 == 之后，求解只有一个解，安装 20 秒完成。
+#
+# start-orbit.bat 会优先用这个文件；找不到才回退到 requirements.txt。
+
+alembic==1.20.0
+annotated-doc==0.0.5
+annotated-types==0.8.0
+anyio==4.15.1
+bcrypt==5.0.0
+certifi==2026.7.22
+click==8.5.0
+colorama==0.4.6
+dnspython==2.8.0
+email-validator==2.3.0
+fastapi==0.142.2
+h11==0.16.0
+httpcore==1.0.9
+httptools==0.8.0
+httpx==0.28.1
+idna==3.20
+iniconfig==2.3.0
+Mako==1.4.3
+MarkupSafe==3.0.4
+opentelemetry-api==1.45.0
+packaging==26.3
+pluggy==1.6.0
+pydantic_core==2.46.5
+pydantic==2.13.5
+pydantic-settings==2.15.0
+Pygments==2.21.0
+PyJWT==2.15.1
+pytest==9.1.1
+python-dotenv==1.2.4
+python-multipart==0.0.32
+PyYAML==6.0.3
+ruff==0.16.10
+SQLAlchemy==2.1.3
+starlette==1.7.0
+typing_extensions==4.16.0
+typing-inspection==0.4.4
+uvicorn==0.54.0
+watchfiles==1.3.0
+websockets==17.2
