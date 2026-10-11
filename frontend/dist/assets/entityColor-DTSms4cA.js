@@ -1,0 +1,1 @@
+var e=[`#e6be74`,`#7cb7f5`,`#72d6a0`,`#a78bfa`,`#e98989`,`#6fd0d8`,`#c79ae0`,`#9fb3c8`];function t(e){let t=2166136261;for(let n=0;n<e.length;n+=1)t^=e.charCodeAt(n),t=Math.imul(t,16777619);return Math.abs(t)}function n(n){return n?e[t(n)%e.length]:e[0]}export{n as t};

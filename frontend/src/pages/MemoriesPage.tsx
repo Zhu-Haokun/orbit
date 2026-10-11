@@ -119,7 +119,7 @@ function MemoriesBody({
         <MemoriesReplay payload={payload} />
       )}
       <div className="grid gap-10 xl:grid-cols-[minmax(0,1fr)_260px]">
-        <div className="min-w-0 xl:max-w-[720px]">
+        <div className="orbit-reading-field min-w-0 rounded-lg px-6 py-6 xl:max-w-[720px]">
           {/*
             阅读场（产品文档「背景层次」试点）：主列坐在一块略亮的表面上，
             时间线两侧仍然是更暗的画布 —— 视线因此停在文字和图片上，

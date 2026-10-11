@@ -4,6 +4,7 @@ import { Chip } from "@/components/ui/Chip";
 import { Modal } from "@/components/ui/Modal";
 import { cn } from "@/lib/cn";
 import { useUiStore } from "@/stores/uiStore";
+import { entityColor } from "@/lib/entityColor";
 import type { Group } from "@/types";
 
 /**
@@ -47,6 +48,12 @@ export function GalaxyFilter({ groups }: GalaxyFilterProps) {
               active={groupId === group.id}
               onClick={() => setGalaxyGroupId(group.id)}
             >
+              {/* 每个星系一粒稳定的色点 —— 同一个星系永远是同一个颜色。 */}
+              <span
+                aria-hidden
+                className="mr-1.5 inline-block size-1.5 rounded-full align-middle"
+                style={{ backgroundColor: entityColor(group.id) }}
+              />
               {group.name}
             </Chip>
           ))}

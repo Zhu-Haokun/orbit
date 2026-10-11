@@ -33,7 +33,7 @@ export function MemoryPromptCard({ item, className }: MemoryPromptCardProps) {
     : null;
 
   return (
-    <Card tone="quiet" className={cn("flex flex-col gap-3 px-4 py-4 md:px-5 md:py-5", className)}>
+    <Card tone="quiet" accent="cool" className={cn("flex flex-col gap-3 px-4 py-4 md:px-5 md:py-5", className)}>
       <div className="flex flex-col gap-1">
         <span className="text-sm text-ink-3">有一阵子没有新的记录</span>
         <h3 className="text-h3 text-ink">{name}</h3>

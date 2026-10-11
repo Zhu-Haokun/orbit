@@ -39,7 +39,7 @@ export function TodayDateCard({ item, className }: TodayDateCardProps) {
   const memory = item.lastYearMemory;
 
   return (
-    <Card tone="soft" className={cn("flex flex-col gap-3 px-4 py-4 md:px-5 md:py-5", className)}>
+    <Card tone="soft" accent="warm" className={cn("flex flex-col gap-3 px-4 py-4 md:px-5 md:py-5", className)}>
       <div className="flex flex-col gap-1">
         <span
           className={cn(

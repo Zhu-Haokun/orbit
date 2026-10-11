@@ -4,6 +4,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { ArrowLeft, MoreHorizontal } from "lucide-react";
 
 import { Avatar } from "@/components/ui/Avatar";
+import { entityColor } from "@/lib/entityColor";
 import { Button } from "@/components/ui/Button";
 import { DeletePersonDialog } from "@/features/people/DeletePersonDialog";
 import { EditPersonModal } from "@/features/people/EditPersonModal";
@@ -62,7 +63,16 @@ export function PersonHero({ person }: { person: PersonDetail }) {
       <div className="flex items-center gap-4">
         <Avatar name={person.name} src={person.avatarUrl} size="xl" />
         <div className="flex min-w-0 flex-col gap-1">
-          <h1 className="truncate text-h1 text-ink">{person.name}</h1>
+          <h1 className="flex min-w-0 items-center gap-2.5 text-h1 text-ink">
+            {/* 这个人的专属颜色 —— 和星系 chip、概览条色点是同一套语言。
+                只染这一粒：大面积染色在深色界面里会发脏（试过紫色表面）。 */}
+            <span
+              aria-hidden
+              className="size-2 shrink-0 rounded-full"
+              style={{ backgroundColor: entityColor(person.id) }}
+            />
+            <span className="truncate">{person.name}</span>
+          </h1>
           {person.relationshipLabel && (
             <p className="truncate text-body text-ink-2">{person.relationshipLabel}</p>
           )}
