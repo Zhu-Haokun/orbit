@@ -625,8 +625,38 @@
   }
 }
 
+/* ------------------------------------------------------------------ *
+ * 「我」的轨道环
+ *
+ * 应用叫 Orbit，自己是所有轨道的中心。但"中心感"不该靠把头像画得更大更亮
+ * 来获得 —— 那会变成"我比谁都显眼"，在山一样密的星图里很吵。
+ *
+ * 改用一条缓慢旋转的虚线环：它说的是"别人绕着你转"，而不是"你最大"。
+ * 虚线本身就是轨道的意思；旋转让中心显得**活着**，而且因为线很细、
+ * 转速很慢（28 秒一圈），它是气氛而不是动效。
+ *
+ * 与星空的呼吸不同，这里是**旋转** —— 会引发前庭不适，所以
+ * prefers-reduced-motion 下必须停（见文件末尾）。
+ * ------------------------------------------------------------------ */
+.orbit-self-orbit {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: orbit-self-spin 28s linear infinite;
+}
+
+@keyframes orbit-self-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .skeleton {
+    animation: none;
+  }
+
+  /* 旋转是前庭敏感的动效，不像星空呼吸那样可以豁免。 */
+  .orbit-self-orbit {
     animation: none;
   }
 

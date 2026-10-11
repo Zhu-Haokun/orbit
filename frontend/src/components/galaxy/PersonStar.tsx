@@ -144,6 +144,20 @@ export function PersonStar(props: PersonStarProps) {
         }
       >
         <circle r={selfAvatarRadius * 1.9} style={{ fill: `url(#${glowId})` }} opacity={0.26} />
+
+        {/* 「我」的轨道环 —— 虚线 + 极慢自转。
+            中心感来自"别人绕着你"，不来自"你比谁都亮"：所以它是一条
+            一像素的细虚线，而不是更粗更亮的圈。 */}
+        <circle
+          className="orbit-self-orbit"
+          r={selfAvatarRadius + 9}
+          fill="none"
+          stroke="var(--accent)"
+          strokeWidth={1}
+          strokeDasharray="2.5 6.5"
+          opacity={0.5}
+        />
+
         {selfAvatar ? (
           <>
             <defs>
@@ -177,7 +191,7 @@ export function PersonStar(props: PersonStarProps) {
         <text
           y={selfAvatar ? selfAvatarRadius + 18 : 38}
           textAnchor="middle"
-          className="fill-ink-2 text-sm"
+          className="fill-ink text-sm"
           strokeWidth={3}
           style={{ paintOrder: "stroke", strokeLinejoin: "round", stroke: "var(--bg-base)" }}
         >
