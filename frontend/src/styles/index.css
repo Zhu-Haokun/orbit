@@ -32,6 +32,10 @@
   --bg-surface: #1e1b2c;
   --bg-elevated: #272334;
   --bg-soft: #312c40;
+  /* 输入框：比画布更深，是「凹进去的坑」。
+     卡片应该浮起来（亮），输入框应该凹下去（暗）—— 这两种角色
+     之前共用 bg-elevated，于是表单页里全是一块块浮着的浅色板。 */
+  --bg-inset: #0c0f1a;
 
   /* 材质：极低对比，用户关掉才会意识到差别 */
   --bg-texture-opacity: 0.02;
@@ -363,6 +367,7 @@
   --color-rail: var(--bg-rail);
   --color-reading: var(--bg-reading);
   --color-surface: var(--bg-surface);
+  --color-inset: var(--bg-inset);
   --color-elevated: var(--bg-elevated);
   --color-soft: var(--bg-soft);
   --color-hover-fill: var(--hover-fill);
