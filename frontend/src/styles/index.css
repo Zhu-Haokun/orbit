@@ -259,6 +259,23 @@
   --font-data: "Cascadia Mono", "SF Mono", Consolas, "Roboto Mono", ui-monospace,
     monospace;
 
+  /*
+   * 第三层语气：书法体（艺术字）。
+   *
+   * 只给**两个地方**用：左上角的词标 Orbit、今天页开头那句问候。
+   * 这一层是调味料 —— 满屏都是书法体会立刻显得俗气，而且中文书法体
+   * 在小字号下笔画会断。所以规则是：只用在大字号、只用在一两处、
+   * 绝不用于按钮/输入/正文/数据。
+   *
+   * 西文用 Gabriola —— 它从 Windows 7 起就随系统附带，是少数"既有书法味
+   * 又耐看"的字体，正好对应别家软件词标那种手写感。
+   * 中文依次退到 华文行楷（Office 附带）→ 楷体（Windows 自带）。
+   * 最后兜到衬线而不是 cursive：cursive 在不同浏览器里映射到什么完全
+   * 不可控，可能退成一种极难读的字体。
+   */
+  --font-script: "Gabriola", "Segoe Script", "Ink Free", "华文行楷", "STXingkai",
+    "KaiTi", "楷体", "Palatino Linotype", var(--font-display);
+
   --color-base: var(--bg-base);
   --color-canvas: var(--bg-canvas);
   --color-reading: var(--bg-reading);
@@ -403,11 +420,19 @@
     letter-spacing: 0.015em;
   }
 
-  /* 品牌名也是"标题语气" —— 它出现在每个页面的左上角。 */
+  /* 品牌名是"书法语气" —— 它出现在每个页面的左上角，是整套界面里
+     唯一一处可以"手写"的地方。西文走 Gabriola，一个词标就够了。 */
   .orbit-wordmark {
-    font-family: var(--font-display);
-    font-weight: 500;
-    letter-spacing: 0.01em;
+    font-family: var(--font-script);
+    font-weight: 400;
+    letter-spacing: 0.015em;
+  }
+
+  /* 问候语：今天页开头那一句，也走书法体，让"早上好"像手写而不是系统提示。 */
+  .orbit-greeting {
+    font-family: var(--font-script);
+    font-weight: 400;
+    letter-spacing: 0.02em;
   }
 
   p {

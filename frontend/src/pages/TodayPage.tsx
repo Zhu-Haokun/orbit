@@ -179,7 +179,8 @@ export function TodayPage() {
           </h1>
         </div>
         <div className="flex flex-col gap-1">
-          <p className="text-h3 text-ink">{greetingForHour(now.getHours())}</p>
+          {/* 问候语走书法体 —— 一天里第一句人话，不该看起来像系统提示。 */}
+          <p className="orbit-greeting text-h2 text-ink">{greetingForHour(now.getHours())}</p>
           {data && <p className="text-body text-ink-2">{headlineForPayload(data)}</p>}
         </div>
       </header>
