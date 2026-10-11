@@ -231,19 +231,33 @@
  * ------------------------------------------------------------------ */
 
 @theme inline {
-  --font-sans: Inter, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  /*
+   * 三套语气，全部走系统字体 —— **不请求任何外部字体**。
+   *
+   * 之前 --font-sans 以 Inter 开头，而 Inter 只存在于 index.html 那条
+   * Google Fonts 外链里。国内加载不到，等于全站一直跑在回退字体上，
+   * 而回退到的是微软雅黑：最常见、最没有身份的 Windows 界面字体。
+   * "古板、没区分度"就是从这来的。
+   */
+  --font-sans: "Segoe UI Variable Text", "Segoe UI", -apple-system, "PingFang SC",
+    "Microsoft YaHei UI", "Microsoft YaHei", system-ui, sans-serif;
 
   /*
-   * 三层字体语气（产品升级文档「UI 和字体升级方案」）。
+   * 展示语气（衬线）：页面标题、日期、回忆标题、人物的重要时刻。
    *
-   * 全站一直只有一套无衬线，结果标题和正文是同一个语气，
-   * 所有页面看起来都像"同一种工具页面"。这里只补一层"展示语气"：
-   * 回忆标题、月份、人物的重要时刻用衬线，操作/输入/状态仍然无衬线。
+   * 西文衬线排在最前 —— Palatino / Georgia 在任何系统上都有，而且是
+   * "书的字体"，立刻把语气从"工具"推向"记录"。中文再往后接宋体系，
+   * 拿到什么算什么，最差也有 SimSun 兜底。
    *
-   * 全部走系统已有字体、不请求外部 Google Fonts —— 网络受限时不会失败。
+   * 笔画对比是这套语气的全部价值：标题衬线 + 正文黑体，两个语气互相
+   * 衬托，页面的层次才立得住；只有一种字体时怎么调字号都还是平的。
    */
-  --font-display: "Noto Serif SC", "Source Han Serif SC", "Songti SC", STSong, "SimSun", serif;
-  --font-data: Inter, "SF Mono", "Roboto Mono", ui-monospace, monospace;
+  --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua",
+    Georgia, "Noto Serif SC", "Source Han Serif SC", "Songti SC", STSong, "SimSun",
+    serif;
+
+  --font-data: "Cascadia Mono", "SF Mono", Consolas, "Roboto Mono", ui-monospace,
+    monospace;
 
   --color-base: var(--bg-base);
   --color-canvas: var(--bg-canvas);
@@ -370,6 +384,30 @@
   h4 {
     font-weight: 600;
     margin: 0;
+  }
+
+  /*
+   * 页面级标题用衬线语气。
+   *
+   * 只作用于 h1 —— 它是"这一页叫什么"，是层次最高的一行。h2/h3 在这个
+   * 项目里既当区块标题又当小标签（有的只有 14px），小字号的中文衬线
+   * 在只有 SimSun 的机器上会毛，所以不碰。
+   *
+   * 字重压到 500 而不是 600：衬线字体的笔画对比本身就在表达"重要"，
+   * 再加粗会糊；而且很多中文衬线（SimSun）根本没有粗体，浏览器会去
+   * 伪造一个，边缘发虚。400-500 才是衬线标题的正确重量。
+   */
+  h1 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    letter-spacing: 0.015em;
+  }
+
+  /* 品牌名也是"标题语气" —— 它出现在每个页面的左上角。 */
+  .orbit-wordmark {
+    font-family: var(--font-display);
+    font-weight: 500;
+    letter-spacing: 0.01em;
   }
 
   p {

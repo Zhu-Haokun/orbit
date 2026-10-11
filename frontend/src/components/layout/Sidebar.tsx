@@ -68,7 +68,7 @@ export function Sidebar() {
           <OrbitLogo size={22} />
           {expanded && (
             <span className="flex min-w-0 flex-col leading-tight">
-              <span className="text-body font-medium text-ink">Orbit</span>
+              <span className="orbit-wordmark text-body text-ink">Orbit</span>
               <span className="text-micro text-ink-3">人情星图</span>
             </span>
           )}

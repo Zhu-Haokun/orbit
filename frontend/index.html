@@ -12,12 +12,18 @@
     <link rel="apple-touch-icon" href="/orbit.svg" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <title>Orbit · 人情星图</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
-      rel="stylesheet"
-    />
+    <!--
+      这里**故意没有** Google Fonts 的外链。
+
+      原来引了 Inter（fonts.googleapis.com）。它带来三个问题：
+        1. 隐私 —— 应用承诺"记录只存在这台电脑上"，却每次启动都向 Google
+           发一次请求。虽然不带任何记录内容，但和承诺的语气不一致
+        2. 可用性 —— 中国大陆访问不到 fonts.googleapis.com，Inter 从来没
+           真正生效过，用户看到的一直是系统回退字体
+        3. 离线 —— 断网启动时字体请求会挂在那里等超时
+      现在全部改用系统字体栈（见 src/styles/index.css 的 --font-*），
+      零请求、零字节、断网也一致。
+    -->
   </head>
   <body>
     <div id="root"></div>
