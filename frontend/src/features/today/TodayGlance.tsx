@@ -31,6 +31,25 @@ import { daysSinceLastInteraction } from "@/lib/starTone";
 /** 多久算「久未联系」。半年 —— 比星等色阶的"有点久了"更严格一些。 */
 const STALE_DAYS = 180;
 
+/**
+ * 每格的语义色。
+ *
+ * 颜色在这里不是装饰，是**分工**：
+ *   warm  金  时间性的、要你留意的（纪念日 / 久未联系）
+ *   accent 紫  你亲口许下的（未完待续）—— 和导航同一个颜色，属于"你"
+ *   jade  绿  来往与结清（借还）
+ *   cool  蓝  回头看的（回忆）
+ * 于是扫一眼就知道哪几格在"叫你"。
+ */
+type GlanceTone = "warm" | "accent" | "jade" | "cool";
+
+const TONE_CLASS: Record<GlanceTone, { dot: string; value: string }> = {
+  warm: { dot: "bg-warning", value: "text-warning" },
+  accent: { dot: "bg-accent", value: "text-accent" },
+  jade: { dot: "bg-success", value: "text-success" },
+  cool: { dot: "bg-info", value: "text-info" },
+};
+
 interface GlanceItem {
   key: string;
   /** 小标题，两到四个字。 */
@@ -39,24 +58,23 @@ interface GlanceItem {
   value: string;
   /** 副行：最相关的那一条事实。 */
   hint: string;
+  /** 语义色。 */
+  tone: GlanceTone;
   /** 有去处时整格可点。 */
   to?: string;
-  /** 需要被看见的一格（今天真的有事）。 */
-  highlight?: boolean;
 }
 
 function GlanceTile({ item }: { item: GlanceItem }) {
+  const tone = TONE_CLASS[item.tone];
+
   const body = (
     <>
-      <span className="text-xs text-ink-3">{item.label}</span>
-      <span
-        className={cn(
-          "text-h3 tabular-nums",
-          item.highlight ? "text-accent" : "text-ink",
-        )}
-      >
-        {item.value}
+      <span className="flex items-center gap-1.5">
+        {/* 一粒语义色的点 —— 比给整格上色克制得多，但足够把五格区分开。 */}
+        <span aria-hidden className={cn("size-1.5 shrink-0 rounded-full", tone.dot)} />
+        <span className="truncate text-xs text-ink-3">{item.label}</span>
       </span>
+      <span className={cn("text-h3 tabular-nums", tone.value)}>{item.value}</span>
       <span className="line-clamp-1 text-xs text-ink-4">{item.hint}</span>
     </>
   );
@@ -94,7 +112,7 @@ export function TodayGlance() {
           label: "重要日期",
           value: `${importantDates.length} 件`,
           hint: `${first.person.name} · ${first.title}`,
-          highlight: true,
+          tone: "warm",
         });
       }
 
@@ -105,6 +123,7 @@ export function TodayGlance() {
           label: "未完待续",
           value: `${commitments.length} 件`,
           hint: `${first.person.name} · ${first.content}`,
+          tone: "accent",
           to: "/today",
         });
       }
@@ -116,6 +135,7 @@ export function TodayGlance() {
           label: "借还",
           value: `${borrowRecords.length} 条`,
           hint: `${first.person.name} · ${first.itemName}`,
+          tone: "jade",
           to: "/today",
         });
       }
@@ -130,6 +150,7 @@ export function TodayGlance() {
           hint: first.lastInteractionTitle
             ? `${first.person.name} · ${first.lastInteractionTitle}`
             : `${first.person.name} 的旧记录`,
+          tone: "cool",
           to: "/memories",
         });
       }
@@ -153,6 +174,7 @@ export function TodayGlance() {
           label: "久未联系",
           value: `${stale.length} 个人`,
           hint: `${worst.person.name} · ${worst.days} 天`,
+          tone: "warm",
           to: "/galaxy",
         });
       }

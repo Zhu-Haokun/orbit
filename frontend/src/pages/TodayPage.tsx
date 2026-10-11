@@ -68,18 +68,38 @@ function headlineForPayload(payload: TodayPayload): string {
   return `今天可以看看：${parts.slice(0, 2).join(" · ")}。`;
 }
 
+/**
+ * 区块标题的语义色 —— 和概览条一一对应。
+ *
+ * 标题上加一粒同色的点，作用不只是好看：用户在上面那排小格看到"金光闪闪的
+ * 久未联系"，往下滚时同色的点会把那一块接上。颜色在这里当**路标**用。
+ */
+const SECTION_TONE = {
+  warm: "bg-warning",
+  accent: "bg-accent",
+  jade: "bg-success",
+  cool: "bg-info",
+} as const;
+
 function Section({
   title,
   children,
   className,
+  tone,
 }: {
   title: string;
   children: ReactNode;
   className?: string;
+  tone?: keyof typeof SECTION_TONE;
 }) {
   return (
     <section className={cn("flex flex-col gap-3", className)}>
-      <h2 className="text-sm text-ink-3">{title}</h2>
+      <h2 className="flex items-center gap-2 text-sm text-ink-3">
+        {tone && (
+          <span aria-hidden className={cn("size-1.5 shrink-0 rounded-full", SECTION_TONE[tone])} />
+        )}
+        {title}
+      </h2>
       {children}
     </section>
   );
@@ -118,7 +138,7 @@ function TodayBody({ payload }: { payload: TodayPayload }) {
   return (
     <>
       {importantDates.length > 0 && (
-        <Section title="今天的重要日期">
+        <Section title="今天的重要日期" tone="warm">
           {importantDates.map((item) => (
             <TodayDateCard key={item.id} item={item} />
           ))}
@@ -126,7 +146,7 @@ function TodayBody({ payload }: { payload: TodayPayload }) {
       )}
 
       {commitments.length > 0 && (
-        <Section title="未完待续">
+        <Section title="未完待续" tone="accent">
           {commitments.map((item) => (
             <TodayCommitmentCard key={item.id} item={item} />
           ))}
@@ -134,7 +154,7 @@ function TodayBody({ payload }: { payload: TodayPayload }) {
       )}
 
       {borrowRecords.length > 0 && (
-        <Section title="借还">
+        <Section title="借还" tone="jade">
           <div className="flex flex-col">
             {borrowRecords.map((item) => (
               <BorrowRow key={item.id} {...item} />
@@ -144,7 +164,7 @@ function TodayBody({ payload }: { payload: TodayPayload }) {
       )}
 
       {memoryPrompts.length > 0 && (
-        <Section title="值得回看的记忆">
+        <Section title="值得回看的记忆" tone="cool">
           {memoryPrompts.map((item) => (
             <MemoryPromptCard key={item.person.id} item={item} />
           ))}

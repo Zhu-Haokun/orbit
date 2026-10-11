@@ -25,10 +25,13 @@
      和主区域之间裂出一条硬边界 —— 大面积底色和小卡片本来就不该同级。
      只差一档就够：靠下面那层极淡的顶部高光区分，而不是靠色块。 */
   --bg-rail: #0e121c;
-  --bg-reading: #19202e;
-  --bg-surface: #191f2e;
-  --bg-elevated: #222a3c;
-  --bg-soft: #2b3448;
+  --bg-reading: #1e1b2c;
+  /* 表面比画布**偏紫** —— 画布是夜空的冷蓝（G>R），表面向主色靠（R>G）。
+     全是同一色相、只差明度，才会显得"就一个深蓝灰"。这里让色相真的分开
+     约 20 度：说不出哪里不一样，但整片界面立刻不那么单调。 */
+  --bg-surface: #1e1b2c;
+  --bg-elevated: #272334;
+  --bg-soft: #312c40;
 
   /* 材质：极低对比，用户关掉才会意识到差别 */
   --bg-texture-opacity: 0.02;
@@ -57,11 +60,34 @@
   /* 规范 §39.1: Primary 按钮为 accent 背景 + 深色文字 */
   --on-accent: #0b0d12;
 
-  /* --- Semantic: 只用于状态，不做大面积背景 --- */
+  /* --- Semantic: 只用于状态，不做大面积背景 ---
+   *
+   * 每个色配三件套：主色 / soft（做底）/ border（做描边）。
+   *
+   * 这是"用颜色突出重点"的正确做法 —— 重点内容用 **soft 底 + 彩色字**，
+   * 而不是把整块染成高饱和的彩色。前者像"被标注过"，后者像"截图里的荧光笔"。
+   *
+   * 更关键的是：这几支颜色**有分工**，不是随机配色 ——
+   *   warm  金  时间性的、要你留意的（纪念日 / 未完待续 / 久未联系）
+   *   cool  蓝  回顾性的、信息性的（回忆 / 记录 / 搜索）
+   *   jade  绿  完成了的、结清的（已完成 / 已归还）
+   * 颜色因此同时承担了"好看"和"读得快"两件事。
+   */
   --success: #72d6a0;
+  --success-soft: rgba(114, 214, 160, 0.13);
+  --success-border: rgba(114, 214, 160, 0.32);
+
   --warning: #e6be74;
+  --warning-soft: rgba(230, 190, 116, 0.13);
+  --warning-border: rgba(230, 190, 116, 0.32);
+
   --danger: #e98989;
+  --danger-soft: rgba(233, 137, 137, 0.13);
+  --danger-border: rgba(233, 137, 137, 0.32);
+
   --info: #7cb7f5;
+  --info-soft: rgba(124, 183, 245, 0.13);
+  --info-border: rgba(124, 183, 245, 0.32);
 
   /* --- 规范 §12 Hover: bg rgba(255,255,255,.04) --- */
   --hover-fill: rgba(255, 255, 255, 0.04);
@@ -359,9 +385,17 @@
   --color-on-accent: var(--on-accent);
 
   --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-success-border: var(--success-border);
   --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-warning-border: var(--warning-border);
   --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-danger-border: var(--danger-border);
   --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-info-border: var(--info-border);
 
   --radius-xs: var(--r-xs);
   --radius-sm: var(--r-sm);
