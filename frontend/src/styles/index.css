@@ -20,10 +20,10 @@
    */
   --bg-base: #0b0e17;
   --bg-canvas: #101522;
-  --bg-reading: rgba(20, 26, 40, 0.72);
-  --bg-surface: #151b29;
-  --bg-elevated: #1d2434;
-  --bg-soft: #252d40;
+  --bg-reading: #1c2233;
+  --bg-surface: #242c3f;
+  --bg-elevated: #2e3749;
+  --bg-soft: #38425a;
 
   /* 材质：极低对比，用户关掉才会意识到差别 */
   --bg-texture-opacity: 0.02;
@@ -151,10 +151,10 @@
 [data-background="ink"] {
   --bg-base: #0e0c0f;
   --bg-canvas: #151317;
-  --bg-reading: rgba(34, 30, 33, 0.72);
-  --bg-surface: #1b181e;
-  --bg-elevated: #241f27;
-  --bg-soft: #2d2731;
+  --bg-reading: #211d23;
+  --bg-surface: #29242c;
+  --bg-elevated: #332d37;
+  --bg-soft: #3e3743;
   --ambient-tint: 226, 196, 158;
   --bg-texture-opacity: 0.028;
   --bg-ambient-opacity: 0.075;
@@ -164,10 +164,10 @@
 [data-background="mist"] {
   --bg-base: #090d16;
   --bg-canvas: #0e1421;
-  --bg-reading: rgba(20, 30, 46, 0.72);
-  --bg-surface: #131a29;
-  --bg-elevated: #1a2334;
-  --bg-soft: #212c40;
+  --bg-reading: #192235;
+  --bg-surface: #212c42;
+  --bg-elevated: #2a374e;
+  --bg-soft: #34425c;
   --ambient-tint: 130, 178, 228;
   --bg-texture-opacity: 0.02;
   --bg-ambient-opacity: 0.075;
@@ -222,6 +222,37 @@
 .orbit-reading-field {
   background-color: var(--bg-reading);
   border-radius: var(--radius-lg, 12px);
+}
+
+/* ------------------------------------------------------------------ *
+ * 灯光：内容列上方那片暖光
+ *
+ * 内容页原来是一整块平涂的深色 —— 文字像浮在黑幕上，那才是"暗沉"。
+ * 修法不是把背景整体调亮（那会让夜空失去夜色），而是**承认这里有光源**：
+ *
+ *   空间 canvas   保持冷、保持暗     —— 它是夜空
+ *   表面 surface  比空间亮一档        —— 它是纸
+ *   这层灯        极淡的一束暖光      —— 它是台灯
+ *
+ * 关键在于：暖意来自**光**，不是来自把表面染成暖色。所以表面 token 仍然
+ * 是冷色（保住夜空的identity），只有这束光偏暖。它只有 5.5% 的白，
+ * 几乎没人会注意到它在 —— 但拿掉之后整页立刻变冷。
+ * ------------------------------------------------------------------ */
+.orbit-lamplight {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    88% 52% at 50% -8%,
+    rgba(255, 233, 205, 0.055) 0%,
+    transparent 68%
+  );
+}
+
+/* 浅色主题本身就是亮的，再打一盏灯只会发黄。 */
+[data-theme="light"] .orbit-lamplight {
+  display: none;
 }
 
 

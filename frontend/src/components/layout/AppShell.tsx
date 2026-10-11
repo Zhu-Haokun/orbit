@@ -52,11 +52,20 @@ export function AppShell() {
             "pb-[calc(var(--tabbar-h)+env(safe-area-inset-bottom,0px))] md:pb-0",
           )}
         >
+          {/*
+            台灯：内容列上方一束极淡的暖光。
+            空间保持冷、保持暗，表面比空间亮一档，光落在表面之上 ——
+            暖意来自光而不是来自把表面染暖，所以夜空的冷色调不受影响。
+            星图不要这层：它自己就是夜空，打灯反而脏。
+          */}
+          {!isGalaxy && <div aria-hidden className="orbit-lamplight" />}
+
           {/* 规范 §11 page enter 300ms —— 保持安静，只做极轻的淡入 */}
           <div
             key={location.pathname}
             className={cn(
-              "flex min-h-0 flex-1 flex-col motion-safe:animate-[orbit-page_300ms_var(--ease-orbit)]",
+              // relative：让内容落在台灯那层之上（绝对定位的兄弟节点默认更靠前）。
+              "relative flex min-h-0 flex-1 flex-col motion-safe:animate-[orbit-page_300ms_var(--ease-orbit)]",
               isGalaxy && "h-full",
             )}
           >
