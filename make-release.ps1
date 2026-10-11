@@ -286,6 +286,51 @@ try {
     $zip.Dispose()
 }
 
+# ------------------------------------------- 5. 刷新 README 的新用户入口 ---
+#
+# 约定：README 指向一个**固定的**入口版本，新用户从那里下载完整安装包。
+# 小版本（1.1.0、1.2.0…）发布时刷新这个指针，补丁版不动它 ——
+# 这样完整包不必每次都传 16 MB，而新人最多只落后几个补丁。
+#
+# 放在这里而不是开头：只有打包**成功**之后才该动 README，
+# 否则打包失败会把文档改成一个并不存在的版本。
+
+if ($Handoff) {
+    Write-Step "刷新 README 的新用户入口"
+
+    $readmePath = Join-Path $Root 'README.md'
+    if (-not (Test-Path -LiteralPath $readmePath)) {
+        Write-Host "    注意：找不到 README.md，跳过（不影响包本身）" -ForegroundColor Yellow
+    } else {
+        $readme = [System.IO.File]::ReadAllText($readmePath, $encoding)
+        $link = [regex]::Match($readme, 'releases/tag/v(\d+\.\d+\.\d+)')
+
+        if (-not $link.Success) {
+            Write-Host "    注意：README 里没有 releases/tag/vX.Y.Z 链接，请手动检查" -ForegroundColor Yellow
+        } elseif ($link.Groups[1].Value -eq $Version) {
+            Write-Info "README 已经指向 v$Version，无需改动"
+        } else {
+            # 只替换三处**带版本前缀**的引用，避免误伤正文里
+            # 「小版本（1.1.0、1.2.0…）」这类说明文字。
+            $old = $link.Groups[1].Value
+            $readme = $readme.Replace("v$old 的 Release 页面", "v$Version 的 Release 页面")
+            $readme = $readme.Replace("releases/tag/v$old", "releases/tag/v$Version")
+            $readme = $readme.Replace("orbit-$old-full.zip", "orbit-$Version-full.zip")
+            [System.IO.File]::WriteAllText($readmePath, $readme, $encoding)
+
+            # 回读确认三处都换到了新版本，且正文里的示例没被误伤。
+            $verify = [System.IO.File]::ReadAllText($readmePath, $encoding)
+            $stillOld = $verify.Contains("releases/tag/v$old") -or $verify.Contains("orbit-$old-full.zip")
+            $hasNew = $verify.Contains("releases/tag/v$Version")
+            if ($stillOld -or -not $hasNew) {
+                Write-Host "    注意：README 替换结果不符合预期，请手动检查" -ForegroundColor Yellow
+            } else {
+                Write-Ok "README 新用户入口：v$old -> v$Version"
+            }
+        }
+    }
+}
+
 # --------------------------------------------------------------- 完成 ---
 
 Write-Host ""
@@ -303,6 +348,13 @@ Write-Host "    3. 发 Release： https://github.com/$($check.repository)/releas
 Write-Host "                    Tag 填 v$Version（记得点 Create new tag）"
 Write-Host "                    附件拖入 $(Split-Path -Leaf $packagePath)"
 Write-Host "                    说明粘贴 release.json 里的 notes"
+if ($Handoff) {
+    Write-Host ""
+    Write-Host "  这是完整安装包，也就是「新用户入口」：" -ForegroundColor Yellow
+    Write-Host "    · README 已经指向 v$Version（第 2 步的 git add -A 会带上它）"
+    Write-Host "    · 这个 Release 要**长期保留**，删了新用户的下载链接就断了"
+    Write-Host "    · 记得把上一个入口 Release 的 full 包删掉，省空间"
+}
 Write-Host ""
 Write-Host "  想先本地验证，就用 orbit_local 那份打开应用，它会提示有新版本。" -ForegroundColor Gray
 Write-Host ""
