@@ -4,6 +4,7 @@ import { UserPlus } from "lucide-react";
 
 import { GalaxyCanvas } from "@/components/galaxy/GalaxyCanvas";
 import { GalaxySpotlight } from "@/components/galaxy/GalaxySpotlight";
+import { GalaxyGlance } from "@/components/galaxy/GalaxyGlance";
 import { GalaxyFilter } from "@/components/galaxy/GalaxyFilter";
 import { GalaxyLegend } from "@/components/galaxy/GalaxyLegend";
 import { GalaxySearch, galaxySearchMatch } from "@/components/galaxy/GalaxySearch";
@@ -208,6 +209,7 @@ export function GalaxyPage() {
 
       <GalaxySearch onFocusFirstMatch={handleFocusFirstMatch} />
       <GalaxySpotlight people={people} />
+      <GalaxyGlance />
       {groups.length > 0 && <GalaxyFilter groups={groups} />}
       <GalaxyZoomControls
         onZoomIn={zoomIn}

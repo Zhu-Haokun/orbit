@@ -5,6 +5,7 @@ import { SkeletonList } from "@/components/ui/Skeleton";
 import { MemoryPromptCard } from "@/features/today/MemoryPromptCard";
 import { TodayCommitmentCard } from "@/features/today/TodayCommitmentCard";
 import { TodayDateCard } from "@/features/today/TodayDateCard";
+import { TodayGlance } from "@/features/today/TodayGlance";
 import { useToday } from "@/hooks/useInsights";
 import { cn } from "@/lib/cn";
 import { formatMonthDay, formatWeekday, todayKey } from "@/lib/format";
@@ -168,17 +169,23 @@ export function TodayPage() {
   const heading = data ? formatTodayHeading(data.date) : formatTodayHeading(todayKey());
 
   return (
-    <div className="mx-auto flex w-full max-w-[900px] flex-col gap-10 px-4 py-8 md:px-8 md:py-10 lg:px-10">
+    <div className="mx-auto flex w-full max-w-[900px] flex-col gap-8 px-4 py-8 md:px-8 md:py-10 lg:px-10">
       <header className="flex flex-col gap-4">
         <div className="flex flex-col gap-1">
-          <h1 className="text-h1 text-ink tabular-nums">{heading}</h1>
-          <p className="text-body text-ink-3">{formatWeekday(now)}</p>
+          {/* 日期与星期并排 —— 读起来像一行"天象标题"，而不是两个字段。 */}
+          <h1 className="flex flex-wrap items-baseline gap-x-3 text-h1 text-ink tabular-nums">
+            {heading}
+            <span className="text-body text-ink-3">{formatWeekday(now)}</span>
+          </h1>
         </div>
         <div className="flex flex-col gap-1">
           <p className="text-h3 text-ink">{greetingForHour(now.getHours())}</p>
           {data && <p className="text-body text-ink-2">{headlineForPayload(data)}</p>}
         </div>
       </header>
+
+      {/* 一屏看完今天有什么 —— 明细在下面，这里只负责"一眼"。 */}
+      {data && <TodayGlance />}
 
       {isError ? (
         <ErrorState onRetry={() => void refetch()} />
