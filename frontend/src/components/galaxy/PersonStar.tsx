@@ -270,6 +270,23 @@ export function PersonStar(props: PersonStarProps) {
                 <circle r={avatarRadius} />
               </clipPath>
             </defs>
+
+            {/* 色阶光环 —— 头像星"谁在变暗"的唯一出口。
+                头像是圆的、颜色由图片决定，没法染色；1px 描边在这个尺度上
+                几乎看不见（实测过，55 个人里绝大多数都有头像，等于整套色阶
+                没生效）。所以这里给它两层：
+                  外层 2.5px 柔光晕 -> 远处一眼能看出冷暖
+                  内层 1.5px 实边   -> 近处确认具体是哪个档
+                两层都跟着 tone 走，dimmed 时一起淡出。 */}
+            <circle
+              r={avatarRadius + 4.5}
+              fill="none"
+              stroke={tone.core}
+              strokeWidth={2.5}
+              opacity={dimmed ? 0.06 : 0.22}
+              style={{ transition: "opacity 1000ms var(--ease-orbit)" }}
+            />
+
             <circle r={avatarRadius + 1} className="fill-base stroke-line-hover" strokeWidth={1} />
             <image
               href={avatar}
@@ -286,8 +303,9 @@ export function PersonStar(props: PersonStarProps) {
               r={avatarRadius}
               className="fill-none"
               stroke={tone.core}
-              strokeWidth={1}
-              opacity={0.55}
+              strokeWidth={1.5}
+              opacity={dimmed ? 0.25 : 0.9}
+              style={{ transition: "opacity 1000ms var(--ease-orbit)" }}
             />
           </>
         ) : (
