@@ -58,7 +58,7 @@ export function Sidebar() {
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         className={cn(
-          "absolute inset-y-0 left-0 z-40 flex flex-col border-r border-line-subtle bg-surface",
+          "absolute inset-y-0 left-0 z-40 flex flex-col border-r border-line-subtle bg-rail orbit-sheen",
           "transition-[width] duration-[260ms] ease-orbit",
           expanded ? "w-[var(--sidebar-w)]" : "w-[var(--sidebar-w-tablet)]",
           isTablet && expanded && "shadow-soft",
