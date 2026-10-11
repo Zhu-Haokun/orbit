@@ -18,7 +18,9 @@ import {
   type GalaxyNode,
 } from "@/features/galaxy/useGalaxyLayout";
 import { useIsMobile } from "@/hooks/useMediaQuery";
-import { useMe } from "@/hooks/useMe";import { cn } from "@/lib/cn";
+import { useMe } from "@/hooks/useMe";
+import { cn } from "@/lib/cn";
+import { STAR_TONES, starToneGlowId } from "@/lib/starTone";
 import { useSessionStore } from "@/stores/sessionStore";
 import { useUiStore } from "@/stores/uiStore";
 import type { Group } from "@/types";
@@ -346,6 +348,15 @@ export function GalaxyCanvas(props: GalaxyCanvasProps) {
             <stop offset="55%" style={{ stopColor: "var(--accent)", stopOpacity: 0.22 }} />
             <stop offset="100%" style={{ stopColor: "var(--accent)", stopOpacity: 0 }} />
           </radialGradient>
+          {/* 星等色阶：每档一条柔光渐变，由 PersonStar 按疏远程度选用。
+              柔光占星星可见面积的大半，只改星核颜色是看不出温度的。 */}
+          {Object.values(STAR_TONES).map((tone) => (
+            <radialGradient key={tone.key} id={starToneGlowId(tone)}>
+              <stop offset="0%" style={{ stopColor: tone.core, stopOpacity: 0.85 }} />
+              <stop offset="55%" style={{ stopColor: tone.core, stopOpacity: 0.22 }} />
+              <stop offset="100%" style={{ stopColor: tone.core, stopOpacity: 0 }} />
+            </radialGradient>
+          ))}
           <radialGradient id={cloudId}>
             <stop offset="0%" style={{ stopColor: "var(--accent)", stopOpacity: 0.08 }} />
             <stop offset="70%" style={{ stopColor: "var(--accent)", stopOpacity: 0.035 }} />

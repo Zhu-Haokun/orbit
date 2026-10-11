@@ -13,23 +13,27 @@
    *   canvas  —— 页面主背景（比 base 略抬一点，让内容"浮"在纸上）
    *   reading —— 正文阅读场（只覆盖主列，让视线停在文字上）
    *   surface / elevated / soft —— 卡片与输入等真正的内容表面
+   *
+   * 层级差是这套 token 的关键。之前 base→surface 只差 6%，眼睛读不出层次，
+   * 整屏糊成一块黑 —— 那才是"暗沉"的来源，不是"暗"本身。
+   * 现在每一级比上一级亮约 25%，卡片明显浮起来。
    */
-  --bg-base: #080a0f;
-  --bg-canvas: #0b0e14;
-  --bg-reading: rgba(18, 22, 31, 0.72);
-  --bg-surface: #0e1118;
-  --bg-elevated: #141822;
-  --bg-soft: #181d28;
+  --bg-base: #0b0e17;
+  --bg-canvas: #101522;
+  --bg-reading: rgba(20, 26, 40, 0.72);
+  --bg-surface: #151b29;
+  --bg-elevated: #1d2434;
+  --bg-soft: #252d40;
 
   /* 材质：极低对比，用户关掉才会意识到差别 */
   --bg-texture-opacity: 0.02;
   --bg-ambient-opacity: 0.05;
-  --ambient-tint: 139, 140, 255;
+  --ambient-tint: 167, 139, 250;
 
   /* --- Border --- */
-  --border-subtle: rgba(255, 255, 255, 0.06);
-  --border-default: rgba(255, 255, 255, 0.1);
-  --border-hover: rgba(255, 255, 255, 0.16);
+  --border-subtle: rgba(255, 255, 255, 0.07);
+  --border-default: rgba(255, 255, 255, 0.11);
+  --border-hover: rgba(255, 255, 255, 0.18);
 
   /* --- Text --- */
   --text-primary: rgba(255, 255, 255, 0.94);
@@ -37,11 +41,14 @@
   --text-tertiary: rgba(255, 255, 255, 0.38);
   --text-disabled: rgba(255, 255, 255, 0.24);
 
-  /* --- Accent: 主色只允许一种 --- */
-  --accent: #8b8cff;
-  --accent-hover: #9c9dff;
-  --accent-soft: rgba(139, 140, 255, 0.14);
-  --accent-border: rgba(139, 140, 255, 0.28);
+  /* --- Accent: 主色只允许一种 ---
+   * 深色背景下主色需要更高的亮度才"站得住"。原来的 #8b8cff 偏灰，
+   * 在拉开层级之后会显得发闷。
+   */
+  --accent: #a78bfa;
+  --accent-hover: #b79dff;
+  --accent-soft: rgba(167, 139, 250, 0.16);
+  --accent-border: rgba(167, 139, 250, 0.32);
   /* 规范 §39.1: Primary 按钮为 accent 背景 + 深色文字 */
   --on-accent: #0b0d12;
 
@@ -136,33 +143,34 @@
 
 /* 深夜轨道（默认）：近黑底 + 冷灰表面 + 紫色焦点，就是现在这套。 */
 [data-background="orbit"] {
-  --ambient-tint: 139, 140, 255;
+  --ambient-tint: 167, 139, 250;
 }
 
-/* 墨纸：黑色里掺一点暖灰，像夜间相册。文字仍然是中性白灰，不做复古滤镜。 */
+/* 墨纸：黑色里掺一点暖灰，像夜间相册。文字仍然是中性白灰，不做复古滤镜。
+ * 这是三个主题里最"温柔"的一个，所以层级也拉得最开、环境光最暖。 */
 [data-background="ink"] {
-  --bg-base: #0c0b0d;
-  --bg-canvas: #121114;
-  --bg-reading: rgba(30, 27, 29, 0.72);
-  --bg-surface: #16141a;
-  --bg-elevated: #1d1a20;
-  --bg-soft: #242028;
-  --ambient-tint: 214, 186, 150;
+  --bg-base: #0e0c0f;
+  --bg-canvas: #151317;
+  --bg-reading: rgba(34, 30, 33, 0.72);
+  --bg-surface: #1b181e;
+  --bg-elevated: #241f27;
+  --bg-soft: #2d2731;
+  --ambient-tint: 226, 196, 158;
   --bg-texture-opacity: 0.028;
-  --bg-ambient-opacity: 0.06;
+  --bg-ambient-opacity: 0.075;
 }
 
 /* 雾蓝：极低饱和的蓝灰远景。蓝色只做远景，不做深蓝仪表盘。 */
 [data-background="mist"] {
-  --bg-base: #070a10;
-  --bg-canvas: #0a0f18;
-  --bg-reading: rgba(16, 24, 36, 0.72);
-  --bg-surface: #0d131d;
-  --bg-elevated: #131a26;
-  --bg-soft: #18202e;
-  --ambient-tint: 120, 170, 220;
+  --bg-base: #090d16;
+  --bg-canvas: #0e1421;
+  --bg-reading: rgba(20, 30, 46, 0.72);
+  --bg-surface: #131a29;
+  --bg-elevated: #1a2334;
+  --bg-soft: #212c40;
+  --ambient-tint: 130, 178, 228;
   --bg-texture-opacity: 0.02;
-  --bg-ambient-opacity: 0.07;
+  --bg-ambient-opacity: 0.075;
 }
 
 /* ------------------------------------------------------------------ *

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 
 import type { GalaxyNode } from "@/features/galaxy/useGalaxyLayout";
 import { relativeDayLabel, truncate } from "@/lib/format";
+import { starToneFromLastInteraction, starToneGlowId } from "@/lib/starTone";
 
 /**
  * 规范 §14.3 人物节点 / §42 Mobile 星图 / §43 键盘与无障碍 / §54.2 新增人物。
@@ -190,6 +191,13 @@ export function PersonStar(props: PersonStarProps) {
   const { id, person, r, brightness } = node;
   const coreOpacity = 0.32 + brightness * 0.68;
   const glowOpacity = 0.09 + brightness * 0.17 + (glowing ? 0.34 : 0);
+
+  // 星等色阶：按「多久没联系」决定星核与柔光的颜色。
+  //
+  // brightness 已经在表达「最近有没有记录」，但它是亮度，不是颜色 —— 一片
+  // 深浅不一的白色星星读不出「谁在变暗」。这里补上色温：常来往是暖金，
+  // 久了转冷蓝，更久变暗紫。两者叠加，星图才真的会说话。
+  const tone = starToneFromLastInteraction(person.lastInteractionAt);
   const withLabel = showLabel || hovered || focused || selected;
   const groupNames = person.groups.map((group) => group.name).join("、");
   const recent = person.lastInteractionAt
@@ -248,8 +256,11 @@ export function PersonStar(props: PersonStarProps) {
       >
         <circle
           r={Math.max(r * 3.2, avatarRadius * 1.8)}
-          style={{ fill: `url(#${glowId})`, transition: "opacity 1000ms var(--ease-orbit)" }}
-          opacity={glowOpacity}
+          style={{
+            fill: `url(#${starToneGlowId(tone)})`,
+            transition: "opacity 1000ms var(--ease-orbit)",
+          }}
+          opacity={glowOpacity * tone.glowScale}
         />
 
         {avatar ? (
@@ -273,13 +284,15 @@ export function PersonStar(props: PersonStarProps) {
             />
             <circle
               r={avatarRadius}
-              className="fill-none stroke-accent-border"
+              className="fill-none"
+              stroke={tone.core}
               strokeWidth={1}
-              opacity={0.8}
+              opacity={0.55}
             />
           </>
         ) : (
-          <circle r={r} className="fill-ink" opacity={coreOpacity} />
+          // 星核用色阶颜色，而不是统一的 fill-ink —— 这是「谁在变暗」最直接的信号。
+          <circle r={r} style={{ fill: tone.core }} opacity={coreOpacity} />
         )}
 
         {(selected || focused) && (
