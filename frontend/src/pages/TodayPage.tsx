@@ -179,8 +179,9 @@ export function TodayPage() {
           </h1>
         </div>
         <div className="flex flex-col gap-1">
-          {/* 问候语走书法体 —— 一天里第一句人话，不该看起来像系统提示。 */}
-          <p className="orbit-greeting text-h2 text-ink">{greetingForHour(now.getHours())}</p>
+          {/* 问候语：字号和字重由 .orbit-greeting 定，这里不再叠工具类，
+              免得两处字号打架。它是应用说的第一句话，安静就好。 */}
+          <p className="orbit-greeting text-ink">{greetingForHour(now.getHours())}</p>
           {data && <p className="text-body text-ink-2">{headlineForPayload(data)}</p>}
         </div>
       </header>

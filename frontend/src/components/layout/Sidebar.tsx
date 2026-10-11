@@ -67,9 +67,11 @@ export function Sidebar() {
         <div className="flex h-[72px] items-center gap-2.5 px-4">
           <OrbitLogo size={22} />
           {expanded && (
-            <span className="flex min-w-0 flex-col leading-tight">
-              <span className="orbit-wordmark text-body text-ink">Orbit</span>
-              <span className="text-micro text-ink-3">人情星图</span>
+            <span className="flex min-w-0 flex-col justify-center">
+              {/* 字号由 .orbit-wordmark 定（Gabriola 至少要 20px 才立得住）。
+                  中文名往下降一级、加宽字距，形成"大西文 + 小中文"的词标锁排。 */}
+              <span className="orbit-wordmark text-ink">Orbit</span>
+              <span className="text-micro tracking-[0.14em] text-ink-4">人情星图</span>
             </span>
           )}
         </div>
