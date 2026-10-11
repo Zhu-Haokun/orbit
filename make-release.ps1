@@ -303,7 +303,11 @@ if ($Handoff) {
         Write-Host "    注意：找不到 README.md，跳过（不影响包本身）" -ForegroundColor Yellow
     } else {
         $readme = [System.IO.File]::ReadAllText($readmePath, $encoding)
-        $link = [regex]::Match($readme, 'releases/tag/v(\d+\.\d+\.\d+)')
+
+        # 容忍 tag 写成 v1.1.0 或 1.1.0 两种形式。手工在 GitHub 上发 Release
+        # 时很容易漏掉 v 前缀，而这里如果写死 'v'，脚本会以为 README 里根本
+        # 没有链接、静默跳过 —— 指针就停在旧版本上，没人发现（真发生过）。
+        $link = [regex]::Match($readme, 'releases/tag/v?(\d+\.\d+\.\d+)')
 
         if (-not $link.Success) {
             Write-Host "    注意：README 里没有 releases/tag/vX.Y.Z 链接，请手动检查" -ForegroundColor Yellow
