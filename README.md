@@ -112,6 +112,7 @@ orbit/
 
 - `frontend/public/avatars/` —— 12 个内置头像 SVG
 - `frontend/public/demo/` —— 3 张演示照片 SVG（回忆页的拼贴与放大查看用）
+- `frontend/public/lifesim/` —— 平行人生（LifeSim）运行副本，由 `/lab` 的 iframe 加载
 
 ---
 
@@ -405,6 +406,23 @@ npm run build         # typecheck + vite build
 
 以前「未完待续」**只能**由记录解析产生，用户没有办法自己加一条。
 现在区块标题旁有「添加」，空状态也有就地动作。
+
+### 10.7 平行人生（LifeSim 实验场）
+
+侧栏第六项「平行人生」是一个完全独立的静态子应用 —— 原来的
+`概率/`（LifeSim · 人生概率实验室）的运行副本放在 `frontend/public/lifesim/`。
+
+点侧栏不会直接跳进游戏，而是先到 `/lab` 入口页：用 Orbit 的语言说明它是什么、
+不是什么，以及三种玩法（极速一生 / 关键人生 / 平行宇宙）。用户点「进入实验场」之后，
+`/lab/play` 才用 iframe 全屏加载 LifeSim；左上角「返回 Orbit」直接回星图，
+浏览器返回键则回到入口页。入口页不读取任何人物或记录，LifeSim 也不发起网络请求，
+人生卡只存在浏览器 `localStorage` 里，是纯沙盒。
+
+进入 `/lab/play` 时 Orbit 的侧栏会让位，只留一条 44px 的深色返回栏 —— 因为 LifeSim
+自带一套导航，两条侧栏并排会很吵。移动端从底部 Tab 的「实验」进入。
+这是规范 §0.4「不新增一级导航」的明确例外：它只提升可玩性，不参与关系记录。
+
+实现细节、同步方式和回滚步骤见 `LifeSim集成说明.md`。
 
 ---
 

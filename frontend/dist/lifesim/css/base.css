@@ -1,0 +1,620 @@
+/* ============================================================
+ * LifeSim · css/base.css
+ * 重置、排版、页面骨架、背景氛围、滚动条、通用动画
+ * ============================================================ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: var(--f-body);
+  line-height: 1.6;
+  color: var(--t-1);
+  background: var(--bg-base);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden; /* 由内部滚动区负责滚动 */
+}
+
+/* ---------------- 氛围背景 ----------------
+   三层叠加：品牌色光晕 + 深空渐变 + 细网格
+   成本极低（纯 CSS），但能立刻摆脱"教学软件"的观感 */
+.bg-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.bg-layer::before {
+  content: '';
+  position: absolute;
+  inset: -20%;
+  background:
+    radial-gradient(46% 38% at 14% 8%, rgba(124, 92, 255, 0.20), transparent 62%),
+    radial-gradient(38% 34% at 88% 12%, rgba(96, 165, 250, 0.16), transparent 60%),
+    radial-gradient(42% 40% at 72% 92%, rgba(45, 212, 191, 0.10), transparent 62%),
+    radial-gradient(40% 36% at 22% 88%, rgba(192, 132, 252, 0.12), transparent 60%);
+  filter: blur(12px);
+}
+
+.bg-layer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.022) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, #000 30%, transparent 100%);
+}
+
+/* 首页粒子画布 */
+#home-particles {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+/* ---------------- 布局骨架 ---------------- */
+.app {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  height: 100vh;
+  height: 100dvh;
+}
+
+/* ---------------- 侧栏 ---------------- */
+.sidenav {
+  width: var(--nav-w);
+  flex: 0 0 var(--nav-w);
+  display: flex;
+  flex-direction: column;
+  padding: var(--s-5) var(--s-4) var(--s-4);
+  background: linear-gradient(180deg, rgba(16, 20, 38, 0.86), rgba(9, 11, 22, 0.78));
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border-right: 1px solid var(--line);
+  z-index: 40;
+  transition: width var(--dur) var(--ease), flex-basis var(--dur) var(--ease),
+    transform var(--dur) var(--ease);
+}
+
+/* 沉浸模式（运行人生时）折叠导航，把注意力留给内容（规格书 §5.4） */
+body.immersive .sidenav {
+  width: var(--nav-w-collapsed);
+  flex-basis: var(--nav-w-collapsed);
+  padding-left: var(--s-2);
+  padding-right: var(--s-2);
+}
+body.immersive .sidenav .nav-text,
+body.immersive .sidenav .nav-label,
+body.immersive .sidenav .brand-text,
+body.immersive .sidenav .nav-badge,
+body.immersive .sidenav .nav-arrow,
+body.immersive .sidenav .nav-sub,
+body.immersive .sidenav .nav-footer .nav-text {
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+  overflow: hidden;
+}
+body.immersive .sidenav .nav-link { justify-content: center; padding-left: 0; padding-right: 0; }
+body.immersive .sidenav .nav-progress { display: none; }
+body.immersive .brand { justify-content: center; }
+
+/* ---------------- 品牌 ---------------- */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-1) var(--s-2) var(--s-5);
+  margin-bottom: var(--s-3);
+  border-bottom: 1px solid var(--line);
+  text-decoration: none;
+  color: inherit;
+}
+
+.brand-mark {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  border-radius: 12px;
+  background: var(--grad-brand);
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 17px;
+  color: #fff;
+  box-shadow: var(--glow-brand);
+}
+
+.brand-text { transition: opacity var(--dur) var(--ease); min-width: 0; }
+.brand-name {
+  font-size: 14.5px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+.brand-sub {
+  font-size: 10px;
+  color: var(--t-4);
+  letter-spacing: 0.7px;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+}
+
+/* ---------------- 导航 ---------------- */
+.nav-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  margin: 0 calc(var(--s-2) * -1);
+  padding: 0 var(--s-2);
+}
+
+.nav-group { display: flex; flex-direction: column; gap: 2px; }
+
+.nav-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--t-4);
+  text-transform: uppercase;
+  padding: var(--s-4) var(--s-3) var(--s-2);
+  transition: opacity var(--dur) var(--ease);
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: 9px var(--s-3);
+  border-radius: var(--r-sm);
+  color: var(--t-2);
+  cursor: pointer;
+  border: 1px solid transparent;
+  background: transparent;
+  font-size: 13.5px;
+  font-family: inherit;
+  text-align: left;
+  width: 100%;
+  text-decoration: none;
+  position: relative;
+  transition: background var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+}
+
+.nav-ico {
+  flex: 0 0 20px;
+  width: 20px;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1;
+  opacity: 0.92;
+}
+
+.nav-text {
+  white-space: nowrap;
+  transition: opacity var(--dur) var(--ease);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nav-badge {
+  flex: 0 0 auto;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: var(--r-pill);
+  background: var(--glass-3);
+  border: 1px solid var(--line-2);
+  color: var(--t-3);
+  transition: opacity var(--dur) var(--ease);
+}
+.nav-badge.wide { font-size: 9.5px; }
+
+.nav-arrow {
+  font-size: 13px;
+  color: var(--t-4);
+  transition: transform var(--dur) var(--ease);
+}
+
+.nav-link:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--t-1);
+}
+
+.nav-link.on {
+  background: linear-gradient(90deg, rgba(124, 92, 255, 0.22), rgba(124, 92, 255, 0.04));
+  border-color: rgba(124, 92, 255, 0.42);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px rgba(167, 139, 250, 0.10);
+}
+.nav-link.on .nav-ico { opacity: 1; }
+.nav-link.on::before {
+  content: '';
+  position: absolute;
+  left: -1px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 18px;
+  border-radius: 0 3px 3px 0;
+  background: var(--grad-brand);
+}
+
+/* 实验室子菜单 */
+.nav-item-wrap { display: flex; flex-direction: column; }
+.nav-item-wrap.open .nav-arrow { transform: rotate(90deg); }
+.nav-sub {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height var(--dur) var(--ease), opacity var(--dur) var(--ease);
+  padding-left: 31px;
+}
+.nav-item-wrap.open .nav-sub { max-height: 220px; }
+.nav-sub-link {
+  font-size: 12.5px;
+  color: var(--t-3);
+  padding: 6px var(--s-3);
+  border-radius: var(--r-xs);
+  text-decoration: none;
+  border-left: 1px solid var(--line-2);
+  transition: all var(--dur-fast) var(--ease);
+}
+.nav-sub-link:hover { color: var(--t-1); background: rgba(255, 255, 255, 0.04); }
+.nav-sub-link.on {
+  color: var(--c-brand-2, #a78bfa);
+  border-left-color: var(--c-brand-2, #a78bfa);
+  font-weight: 600;
+}
+
+/* 侧栏底部：设置 + 模拟总量 */
+.nav-footer {
+  border-top: 1px solid var(--line);
+  padding-top: var(--s-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  transition: opacity var(--dur) var(--ease);
+}
+.nav-progress { padding: 0 var(--s-2); }
+.np-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: var(--f-xxs);
+  color: var(--t-4);
+  margin-bottom: 5px;
+}
+.np-row b { font-family: var(--font-mono); color: var(--t-2); font-size: var(--f-xs); }
+
+.nav-backdrop { display: none; }
+
+/* ---------------- 主区域 ---------------- */
+.main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  height: var(--topbar-h);
+  flex: 0 0 var(--topbar-h);
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  padding: 0 var(--s-6);
+  background: rgba(9, 11, 22, 0.6);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border-bottom: 1px solid var(--line);
+  z-index: 30;
+}
+
+.tb-left { min-width: 0; }
+.tb-title {
+  font-size: 15.5px;
+  font-weight: 650;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tb-sub {
+  font-size: var(--f-xs);
+  color: var(--t-3);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 15px;
+}
+.tb-sub:empty { display: none; }
+.tb-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--t-4);
+  flex: 0 0 auto;
+}
+.tb-dot.ok { background: var(--c-ok); box-shadow: 0 0 8px var(--c-ok); animation: pulse 1.8s infinite; }
+.tb-dot.warn { background: var(--c-warn); box-shadow: 0 0 8px var(--c-warn); }
+.tb-dot.bad { background: var(--c-bad); box-shadow: 0 0 8px var(--c-bad); }
+.tb-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+.tb-fate:empty { display: none; }
+.tb-icon { display: none; }
+.tb-burger { display: none; }
+
+/* 桌面端只有折叠状态（沉浸模式）才需要汉堡按钮。
+ * .btn-icon 在 components.css 里是 display:grid，且加载顺序在 base.css 之后；
+ * 不提高选择器权重的话，汉堡会在桌面常显，而 body.nav-open 在 >1080px
+ * 没有对应样式 —— 用户点了没有任何反应。 */
+@media (min-width: 1081px) {
+  body:not(.immersive) .tb-burger { display: none; }
+}
+
+.viewport {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+.page {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: var(--s-7) var(--s-6) var(--s-9);
+}
+
+/* 页面进入动画 */
+.page-enter {
+  animation: pageIn var(--dur-slow) var(--ease-out);
+}
+
+@keyframes pageIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---------------- 标题层级（规格书 §5.3） ---------------- */
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+}
+
+.h1 {
+  font-size: var(--f-h1);
+  line-height: 1.2;
+}
+
+.h2 {
+  font-size: var(--f-h2);
+  line-height: 1.3;
+}
+
+.h3 {
+  font-size: var(--f-h3);
+  line-height: 1.35;
+}
+
+.eyebrow {
+  font-size: var(--f-xs);
+  font-weight: 700;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--c-fate);
+}
+
+.lead {
+  font-size: 17px;
+  color: var(--t-2);
+  line-height: 1.62;
+}
+
+.muted {
+  color: var(--t-3);
+}
+.dim {
+  color: var(--t-4);
+}
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.num {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* ---------------- 滚动条 ---------------- */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: var(--r-pill);
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+  background-clip: content-box;
+}
+
+/* ---------------- 工具类 ---------------- */
+.row {
+  display: flex;
+  align-items: center;
+}
+.col {
+  display: flex;
+  flex-direction: column;
+}
+.wrap {
+  flex-wrap: wrap;
+}
+.gap-1 { gap: var(--s-1); }
+.gap-2 { gap: var(--s-2); }
+.gap-3 { gap: var(--s-3); }
+.gap-4 { gap: var(--s-4); }
+.gap-5 { gap: var(--s-5); }
+.gap-6 { gap: var(--s-6); }
+.grow { flex: 1; min-width: 0; }
+.center { align-items: center; }
+.between { justify-content: space-between; }
+.end { justify-content: flex-end; }
+.hidden { display: none !important; }
+
+.grid {
+  display: grid;
+  gap: var(--s-5);
+}
+.g-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.g-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.g-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.g-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.g-6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+
+@media (max-width: 1500px) {
+  .g-6 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .g-5 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 1180px) {
+  .g-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .g-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 900px) {
+  .g-2, .g-3, .g-4, .g-5, .g-6 { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ---------------- 响应式：移动端导航抽屉（规格书 §51.2） ---------------- */
+@media (max-width: 1080px) {
+  .tb-icon, .tb-burger { display: grid; }
+  .tb-quick { display: none; }
+
+  .sidenav {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 268px;
+    flex-basis: 268px;
+    transform: translateX(-102%);
+    box-shadow: var(--sh-lg);
+  }
+  body.nav-open .sidenav { transform: none; }
+  body.immersive .sidenav {
+    width: 268px;
+    flex-basis: 268px;
+    padding-left: var(--s-4);
+    padding-right: var(--s-4);
+  }
+  body.immersive .sidenav .nav-text,
+  body.immersive .sidenav .nav-label,
+  body.immersive .sidenav .brand-text,
+  body.immersive .sidenav .nav-badge,
+  body.immersive .sidenav .nav-arrow,
+  body.immersive .sidenav .nav-footer .nav-text {
+    opacity: 1;
+    pointer-events: auto;
+    width: auto;
+  }
+  body.immersive .sidenav .nav-progress { display: block; }
+  body.immersive .sidenav .nav-link { justify-content: flex-start; padding-left: var(--s-3); padding-right: var(--s-3); }
+  body.immersive .brand { justify-content: flex-start; }
+
+  .nav-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 35;
+    background: rgba(3, 4, 10, 0.6);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--dur) var(--ease);
+  }
+  body.nav-open .nav-backdrop { opacity: 1; pointer-events: auto; }
+
+  .page { padding: var(--s-5) var(--s-4) var(--s-8); }
+  .topbar { padding: 0 var(--s-4); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------------- 通用动画 ---------------- */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+@keyframes sweep {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(200%); }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes floatUp {
+  from { opacity: 0; transform: translateY(14px) scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+
+.anim-up { animation: fadeUp var(--dur) var(--ease-out) both; }
+.anim-in { animation: fadeIn var(--dur) var(--ease-out) both; }

@@ -1,19 +1,23 @@
 import { NavLink } from "react-router-dom";
-import { Clock3, Orbit, Plus, Sun, User } from "lucide-react";
+import { Clock3, Orbit, Plus, Sparkles, Sun, User } from "lucide-react";
 
 import { useToday } from "@/hooks/useInsights";
 import { cn } from "@/lib/cn";
 
 /**
  * 规范 §84 Mobile Bottom Navigation
- * 顺序固定：星图 / 今天 / 记录 / 回忆 / 我的
+ * 顺序：星图 / 今天 / 记录 / 回忆 / 实验 / 我的
  * height 68 / safe-area aware；“记录”可以略突出，但不要变成巨大悬浮按钮。
+ *
+ * 第六项“实验”是平行人生（LifeSim）的移动端入口 —— 移动端没有左侧栏，
+ * 不放这里就没有任何入口。
  */
 const ITEMS = [
   { to: "/galaxy", label: "星图", icon: Orbit },
   { to: "/today", label: "今天", icon: Sun },
   { to: "/record", label: "记录", icon: Plus, emphasis: true },
   { to: "/memories", label: "回忆", icon: Clock3 },
+  { to: "/lab", label: "实验", icon: Sparkles },
   { to: "/settings", label: "我的", icon: User },
 ] as const;
 

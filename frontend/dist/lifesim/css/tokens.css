@@ -1,0 +1,165 @@
+/* ============================================================
+ * LifeSim · css/tokens.css
+ * 设计令牌（Design Tokens）
+ *
+ * 规格书 §5.2 明确要求"颜色语义统一维护为 Design Tokens，
+ * 不在单个组件中硬编码"。本文件是唯一的颜色/间距/字号来源。
+ *
+ * 视觉方向：深空背景 + 半透明玻璃卡片 + 柔和霓虹 + 大面积留白，
+ * 参考 Linear / Raycast / Vercel 这一类现代深色产品的质感，
+ * 避免"教学软件蓝白表格风"。
+ * ============================================================ */
+
+:root {
+  /* ---------------- 背景层次 ---------------- */
+  --bg-void: #04050b;          /* 最底层 */
+  --bg-base: #070912;          /* 页面底色 */
+  --bg-deep: #0b0e1c;          /* 区块底色 */
+  --bg-elev: #11152a;          /* 抬升面 */
+  --bg-sunken: #05060e;        /* 凹陷面（输入框等） */
+
+  /* 玻璃面板 */
+  --glass: rgba(20, 25, 46, 0.52);
+  --glass-2: rgba(28, 34, 60, 0.62);
+  --glass-3: rgba(38, 45, 78, 0.72);
+  --glass-blur: 22px;
+
+  /* ---------------- 描边 ---------------- */
+  --line: rgba(255, 255, 255, 0.075);
+  --line-2: rgba(255, 255, 255, 0.14);
+  --line-3: rgba(255, 255, 255, 0.22);
+  --line-glow: rgba(167, 139, 250, 0.35);
+
+  /* ---------------- 文本 ---------------- */
+  --t-1: #f2f4fb;              /* 主文本 */
+  --t-2: #b9c0d8;              /* 次级 */
+  --t-3: #7d86a3;              /* 辅助 */
+  --t-4: #525a75;              /* 极弱 */
+  --t-inv: #080a14;            /* 反色（浅底上的文字） */
+
+  /* ---------------- 语义色 ---------------- */
+  /* 成功 / 正向 */
+  --c-ok: #34d399;
+  --c-ok-soft: rgba(52, 211, 153, 0.14);
+  --c-ok-line: rgba(52, 211, 153, 0.42);
+  /* 风险 / 警告 */
+  --c-warn: #fbbf24;
+  --c-warn-soft: rgba(251, 191, 36, 0.14);
+  --c-warn-line: rgba(251, 191, 36, 0.42);
+  /* 失败 / 极端下行 */
+  --c-bad: #f87171;
+  --c-bad-soft: rgba(248, 113, 113, 0.14);
+  --c-bad-line: rgba(248, 113, 113, 0.42);
+  /* 随机性 / 命运 */
+  --c-fate: #a78bfa;
+  --c-fate-soft: rgba(167, 139, 250, 0.14);
+  --c-fate-line: rgba(167, 139, 250, 0.45);
+  /* 知识 / 数学解释 */
+  --c-know: #60a5fa;
+  --c-know-soft: rgba(96, 165, 250, 0.14);
+  --c-know-line: rgba(96, 165, 250, 0.42);
+  /* 当前玩家人生（高亮金） */
+  --c-gold: #fcd34d;
+  --c-gold-soft: rgba(252, 211, 77, 0.16);
+  /* 平行样本（低透明灰紫） */
+  --c-ghost: #8b93b8;
+  --c-ghost-soft: rgba(139, 147, 184, 0.16);
+  /* 青（辅助强调） */
+  --c-teal: #2dd4bf;
+  --c-teal-soft: rgba(45, 212, 191, 0.14);
+
+  /* 主强调色（品牌紫蓝渐变） */
+  --brand-1: #7c5cff;
+  --brand-2: #a78bfa;
+  --brand-3: #60a5fa;
+  --grad-brand: linear-gradient(135deg, #7c5cff 0%, #a78bfa 50%, #60a5fa 100%);
+  --grad-fate: linear-gradient(135deg, #8b5cf6, #c084fc);
+
+  /* ---------------- 圆角（规格书 §5.4） ---------------- */
+  --r-xs: 8px;
+  --r-sm: 12px;
+  --r-md: 16px;
+  --r-lg: 22px;    /* 大卡片 20~24 */
+  --r-xl: 28px;
+  --r-pill: 999px;
+
+  /* ---------------- 间距 ---------------- */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 22px;
+  --s-6: 28px;
+  --s-7: 36px;
+  --s-8: 48px;
+  --s-9: 64px;
+
+  /* ---------------- 字号（规格书 §5.3） ---------------- */
+  --f-h1: 38px;        /* 页面主题 32~40 */
+  --f-h2: 22px;        /* 卡片标题 20~24 */
+  --f-h3: 17px;
+  --f-num-xl: 60px;    /* 核心概率数值 40~64 */
+  --f-num-lg: 40px;
+  --f-num: 26px;       /* 数据指标 20~28 */
+  --f-body: 15px;      /* 正文 14~16 */
+  --f-sm: 13.5px;
+  --f-xs: 12px;
+  --f-xxs: 11px;
+
+  /* ---------------- 字体 ---------------- */
+  --font-sans: "Inter", "Segoe UI", -apple-system, "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei UI", "Microsoft YaHei",
+    "Source Han Sans SC", "Noto Sans CJK SC", sans-serif;
+  --font-mono: "JetBrains Mono", "Cascadia Mono", "SF Mono", Consolas,
+    "DejaVu Sans Mono", ui-monospace, monospace;
+
+  /* ---------------- 阴影 / 光晕 ---------------- */
+  /* 规格书 §5.4：阴影弱化，更多用描边、模糊与层次透明度 */
+  --sh-sm: 0 2px 8px rgba(0, 0, 0, 0.28);
+  --sh-md: 0 8px 28px rgba(0, 0, 0, 0.34);
+  --sh-lg: 0 20px 60px rgba(0, 0, 0, 0.42);
+  --glow-brand: 0 0 0 1px rgba(124, 92, 255, 0.4), 0 8px 32px rgba(124, 92, 255, 0.22);
+  --glow-fate: 0 0 24px rgba(167, 139, 250, 0.35);
+  --glow-gold: 0 0 22px rgba(252, 211, 77, 0.35);
+  --glow-ok: 0 0 22px rgba(52, 211, 153, 0.3);
+  --glow-bad: 0 0 22px rgba(248, 113, 113, 0.3);
+
+  /* ---------------- 动效 ---------------- */
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 0.14s;
+  --dur: 0.24s;
+  --dur-slow: 0.42s;
+
+  /* ---------------- 布局 ---------------- */
+  --nav-w: 232px;
+  --nav-w-collapsed: 76px;
+  --topbar-h: 62px;
+  --page-max: 1560px;
+
+  /* 语义色映射：便于在组件里按 tone 取名 */
+  --tone-ok: var(--c-ok);
+  --tone-warn: var(--c-warn);
+  --tone-bad: var(--c-bad);
+  --tone-fate: var(--c-fate);
+  --tone-know: var(--c-know);
+  --tone-gold: var(--c-gold);
+  --tone-ghost: var(--c-ghost);
+  --tone-teal: var(--c-teal);
+}
+
+/* 减少动态效果（规格书 §51 可访问性） */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0.01ms;
+    --dur: 0.01ms;
+    --dur-slow: 0.01ms;
+  }
+}
+
+/* 手动开启"减少动态效果" */
+body.reduce-motion * {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}

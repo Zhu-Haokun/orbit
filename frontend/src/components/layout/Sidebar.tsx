@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { Clock3, Orbit, Plus, Search, Settings, Sun } from "lucide-react";
+import { Clock3, Orbit, Plus, Search, Settings, Sparkles, Sun } from "lucide-react";
 
 import { OrbitLogo } from "@/components/layout/OrbitLogo";
 import { Avatar } from "@/components/ui/Avatar";
@@ -25,6 +25,8 @@ const NAV_ITEMS = [
   { to: "/record", label: "记录", icon: Plus },
   { to: "/memories", label: "回忆", icon: Clock3 },
   { to: "/search", label: "搜索", icon: Search },
+  // 第六项：平行人生（LifeSim 沙盒）。它不读取任何 Orbit 数据，进入后是全屏独立应用。
+  { to: "/lab", label: "平行人生", icon: Sparkles },
 ] as const;
 
 export function Sidebar() {

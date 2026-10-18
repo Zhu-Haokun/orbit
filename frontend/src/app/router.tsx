@@ -10,6 +10,11 @@ import { useSessionStore } from "@/stores/sessionStore";
  * 规范 §8 路由
  * / /login /register /galaxy /today /record /memories /search /people/:personId /settings
  * 规范：/ 在登录状态下自动进入 /galaxy。
+ *
+ * 额外入口：
+ *   /lab       —— 平行人生的入口页（介绍 + “进入实验场”），套 AppShell；
+ *   /lab/play  —— LifeSim 静态子应用，全屏，不套 AppShell。
+ * 两段式是刻意的：用户先知道这是什么，再决定要不要进去。
  */
 
 const LandingPage = lazy(() => import("@/pages/LandingPage"));
@@ -19,6 +24,8 @@ const GalaxyPage = lazy(() => import("@/pages/GalaxyPage"));
 const RecordPage = lazy(() => import("@/pages/RecordPage"));
 const PersonPage = lazy(() => import("@/pages/PersonPage"));
 const SettingsPage = lazy(() => import("@/pages/SettingsPage"));
+const LabIntroPage = lazy(() => import("@/pages/LabIntroPage"));
+const LabPage = lazy(() => import("@/pages/LabPage"));
 const NotFoundPage = lazy(() => import("@/pages/NotFoundPage"));
 
 // 今天 / 回忆 / 搜索三页导出的是具名组件。
@@ -90,6 +97,20 @@ export function AppRouter() {
           }
         />
 
+        {/*
+          平行人生（LifeSim）是独立的静态子应用，放在 AppShell 之外全屏渲染：
+          它有自己的侧栏与路由，套进 Orbit 的壳里会出现两条导航。
+          这里只保留登录态校验，进去之后由 LabPage 自己的顶部栏提供返回入口。
+        */}
+        <Route
+          path="/lab/play"
+          element={
+            <RequireAuth>
+              <LabPage />
+            </RequireAuth>
+          }
+        />
+
         <Route
           element={
             <RequireAuth>
@@ -102,6 +123,7 @@ export function AppRouter() {
           <Route path="/record" element={<RecordPage />} />
           <Route path="/memories" element={<MemoriesPage />} />
           <Route path="/search" element={<SearchPage />} />
+          <Route path="/lab" element={<LabIntroPage />} />
           <Route path="/people/:personId" element={<PersonPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Route>
