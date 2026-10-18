@@ -21,6 +21,8 @@
       settings: {
         sound: false,
         reduceMotion: false,
+        showScenes: true,      // 人生阶段场景插画（纯 SVG，可关闭）
+        intervention: false,   // 决策干预：关键节点是否暂停
         lens: false,          // 概率透视默认关闭（规格书 §9.5 保持沉浸感）
         lensLevel: 2,         // 知识解释深度 1/2/3
         pathSamples: 300,
@@ -124,6 +126,7 @@
         achievement: run.result.achievement,
         relationship: run.result.relationship,
         lifespan: run.result.lifespan,
+        deathCause: run.result.deathCause || null,
         finalCareer: run.result.finalCareer,
         careerLabel: run.result.careerLabel,
         educationLabel: run.result.educationLabel,

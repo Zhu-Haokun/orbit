@@ -37,7 +37,7 @@ export default function LabPage() {
           <OrbitLogo size={16} />
           <span className="truncate text-sm font-medium text-[#f2f4fb]">平行人生</span>
           <span className="hidden truncate text-micro text-[#7d86a3] sm:inline">
-            LifeSim · 人生概率实验室
+            LifeSim · 人生沙盒
           </span>
         </div>
 

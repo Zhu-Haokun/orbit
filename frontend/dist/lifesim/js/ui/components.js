@@ -13,6 +13,381 @@
   const U = LS.util;
 
   /* ============================================================
+   * 线性图标：只统一界面 chrome，事件 emoji 保留辨识度
+   * ========================================================== */
+  const ICON_DEFS = {
+    home: [
+      ['path', { d: 'M3 10.5 12 3l9 7.5' }],
+      ['path', { d: 'M5.5 9.5V21h13V9.5M9.5 21v-6h5v6' }],
+    ],
+    sliders: [
+      ['path', { d: 'M4 7h7M15 7h5M4 17h5M13 17h7' }],
+      ['circle', { cx: 13, cy: 7, r: 2 }],
+      ['circle', { cx: 10, cy: 17, r: 2 }],
+    ],
+    play: [['path', { d: 'M8 5v14l11-7z' }]],
+    report: [
+      ['path', { d: 'M6 3h9l3 3v15H6z' }],
+      ['path', { d: 'M14 3v4h4M9 12h6M9 16h6' }],
+    ],
+    orbit: [
+      ['circle', { cx: 12, cy: 12, r: 3 }],
+      ['path', { d: 'M3 12c0-3.3 4-6 9-6s9 2.7 9 6-4 6-9 6-9-2.7-9-6z', transform: 'rotate(-25 12 12)' }],
+    ],
+    scale: [
+      ['path', { d: 'M12 4v16M6 7h12M8 20h8' }],
+      ['path', { d: 'M6 7 3.5 13h5L6 7zM18 7l-2.5 6h5L18 7z' }],
+    ],
+    archive: [
+      ['path', { d: 'M4 7h16v13H4z' }],
+      ['path', { d: 'M3 4h18v4H3zM9 12h6' }],
+    ],
+    book: [
+      ['path', { d: 'M4 5.5A2.5 2.5 0 0 1 6.5 3H12v18H6.5A2.5 2.5 0 0 0 4 23.5z' }],
+      ['path', { d: 'M20 5.5A2.5 2.5 0 0 0 17.5 3H12v18h5.5A2.5 2.5 0 0 1 20 23.5z' }],
+    ],
+    settings: [
+      ['circle', { cx: 12, cy: 12, r: 3.2 }],
+      ['path', { d: 'M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1' }],
+    ],
+    menu: [['path', { d: 'M4 7h16M4 12h16M4 17h16' }]],
+    spark: [['path', { d: 'M12 2l1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8z' }]],
+    bolt: [['path', { d: 'M13 2 4 14h7l-1 8 9-12h-7z' }]],
+    target: [
+      ['circle', { cx: 12, cy: 12, r: 8 }],
+      ['circle', { cx: 12, cy: 12, r: 4 }],
+      ['circle', { cx: 12, cy: 12, r: 1.2 }],
+    ],
+  };
+
+  function icon(name, size = 18) {
+    const def = ICON_DEFS[name];
+    if (!def) return null;
+    return h('svg.ui-icon', {
+      viewBox: '0 0 24 24',
+      width: String(size),
+      height: String(size),
+      fill: 'none',
+      stroke: 'currentColor',
+      'stroke-width': 1.7,
+      'stroke-linecap': 'round',
+      'stroke-linejoin': 'round',
+      'aria-hidden': 'true',
+    }, def.map(([tag, props]) => h(tag, props)));
+  }
+
+  /* ============================================================
+   * 人生阶段场景：原创 SVG，不依赖外部图片
+   * ========================================================== */
+  let sceneSeq = 0;
+  const SCENE_META = {
+    start: { label: '出发', range: '18–27 岁', note: '一张还没写完的简历' },
+    family: { label: '成家', range: '28–42 岁', note: '日子开始有了别人的重量' },
+    mid: { label: '中年', range: '43–60 岁', note: '上有老，下有小' },
+    late: { label: '慢下来', range: '60 岁以后', note: '把时间还给自己' },
+  };
+
+  function stageOfAge(age) {
+    if (age < 28) return 'start';
+    if (age < 43) return 'family';
+    if (age < 61) return 'mid';
+    return 'late';
+  }
+
+  function lifeScene(stage, opts = {}) {
+    const key = SCENE_META[stage] ? stage : 'start';
+    const meta = SCENE_META[key];
+    const compact = !!opts.compact;
+    const id = 'sc' + (++sceneSeq);
+    const palettes = {
+      start: {
+        bg1: '#08101f', bg2: '#0c1728', wall: '#172741', wallDark: '#0e1a2d',
+        floor: '#111d32', floorLine: '#2a4262', wood: '#5a4030', woodDark: '#35241a',
+        accent: '#7dd3fc', warm: '#fbbf24', green: '#4f8a70', fabric: '#334155',
+        rug: '#172b4a', sofa: '#3b4a63', sofaDark: '#26344b', skin: '#c08457',
+        text: '#dbeafe', frame: '#0a1322',
+      },
+      family: {
+        bg1: '#160d0a', bg2: '#24130e', wall: '#3a241b', wallDark: '#22140e',
+        floor: '#1b100b', floorLine: '#5a3728', wood: '#7a5136', woodDark: '#3d2418',
+        accent: '#fbbf24', warm: '#f59e0b', green: '#6f8b4e', fabric: '#8b5a3c',
+        rug: '#4a2c1c', sofa: '#8a5638', sofaDark: '#5c3624', skin: '#d8a06a',
+        text: '#ffedd5', frame: '#1a0d08',
+      },
+      mid: {
+        bg1: '#061318', bg2: '#0a1e24', wall: '#123137', wallDark: '#081b20',
+        floor: '#0a1b20', floorLine: '#1e4b50', wood: '#5f4734', woodDark: '#32241b',
+        accent: '#5eead4', warm: '#fbbf24', green: '#4f8a70', fabric: '#2f4f52',
+        rug: '#103137', sofa: '#315c5a', sofaDark: '#1d3c3b', skin: '#c08457',
+        text: '#ccfbf1', frame: '#061014',
+      },
+      late: {
+        bg1: '#1c0e09', bg2: '#32180e', wall: '#4a2a1c', wallDark: '#2a160d',
+        floor: '#21110b', floorLine: '#6b3c25', wood: '#7a5136', woodDark: '#3d2418',
+        accent: '#fdba74', warm: '#fbbf24', green: '#6f8b4e', fabric: '#8f5a3b',
+        rug: '#4f2c1a', sofa: '#9a6038', sofaDark: '#633a22', skin: '#d8a06a',
+        text: '#ffedd5', frame: '#1a0d08',
+      },
+    };
+    const p = palettes[key];
+    const parts = [];
+    const push = (el) => parts.push(el);
+    const poly = (points, fill, opacity, extra) => push(h('polygon', Object.assign({
+      points, fill, opacity: opacity == null ? 1 : opacity,
+    }, extra || {})));
+    const box = (x, y, w, hh, rx, fill, opacity, extra) => push(h('rect', Object.assign({
+      x, y, width: w, height: hh, rx: rx || 0, fill, opacity: opacity == null ? 1 : opacity,
+    }, extra || {})));
+    const line = (d, stroke, width, opacity) => push(h('path', {
+      d, fill: 'none', stroke, 'stroke-width': width || 1, 'stroke-opacity': opacity == null ? 1 : opacity,
+      'stroke-linecap': 'round', 'stroke-linejoin': 'round',
+    }));
+
+    /* ---------- 背景 / 光 ---------- */
+    push(h('defs', [
+      h('linearGradient', { id: id + 'bg', x1: '0', y1: '0', x2: '0', y2: '1' }, [
+        h('stop', { offset: '0%', 'stop-color': p.bg2 }),
+        h('stop', { offset: '100%', 'stop-color': p.bg1 }),
+      ]),
+      h('linearGradient', { id: id + 'sky', x1: '0', y1: '0', x2: '0', y2: '1' }, [
+        h('stop', { offset: '0%', 'stop-color': key === 'late' ? '#7c2d12' : key === 'family' ? '#7c4a1d' : key === 'mid' ? '#134e4a' : '#0b1b3a' }),
+        h('stop', { offset: '100%', 'stop-color': key === 'late' ? '#fdba74' : key === 'family' ? '#fcd34d' : key === 'mid' ? '#2dd4bf' : '#334155' }),
+      ]),
+      h('linearGradient', { id: id + 'wall', x1: '0', y1: '0', x2: '0', y2: '1' }, [
+        h('stop', { offset: '0%', 'stop-color': p.wall }),
+        h('stop', { offset: '100%', 'stop-color': p.wallDark }),
+      ]),
+      h('linearGradient', { id: id + 'floor', x1: '0', y1: '0', x2: '0', y2: '1' }, [
+        h('stop', { offset: '0%', 'stop-color': p.floorLine, 'stop-opacity': '0.5' }),
+        h('stop', { offset: '100%', 'stop-color': p.floor }),
+      ]),
+      h('radialGradient', { id: id + 'glow', cx: '50%', cy: '50%', r: '50%' }, [
+        h('stop', { offset: '0%', 'stop-color': p.accent, 'stop-opacity': '0.38' }),
+        h('stop', { offset: '100%', 'stop-color': p.accent, 'stop-opacity': '0' }),
+      ]),
+      h('radialGradient', { id: id + 'warm', cx: '50%', cy: '50%', r: '50%' }, [
+        h('stop', { offset: '0%', 'stop-color': p.warm, 'stop-opacity': '0.5' }),
+        h('stop', { offset: '100%', 'stop-color': p.warm, 'stop-opacity': '0' }),
+      ]),
+    ]));
+    box(0, 0, 960, 320, 0, 'url(#' + id + 'bg)');
+    push(h('circle', { cx: 720, cy: 92, r: 210, fill: 'url(#' + id + 'glow)', opacity: 0.6 }));
+    push(h('circle', { cx: 200, cy: 210, r: 230, fill: 'url(#' + id + 'warm)', opacity: 0.12 }));
+
+    /* ---------- 房间：后墙 / 侧墙 / 地板 ---------- */
+    poly('120,40 840,40 840,220 120,220', 'url(#' + id + 'wall)');
+    poly('120,40 40,320 120,320 120,220', p.wallDark);
+    poly('840,40 920,320 840,320 840,220', p.wallDark);
+    poly('120,220 840,220 920,320 40,320', 'url(#' + id + 'floor)');
+    // 墙板缝
+    for (const x of [240, 360, 480, 600, 720]) line('M' + x + ' 40V220', p.floorLine, 1, 0.18);
+    line('M120 220H840', p.floorLine, 2, 0.55);
+    line('M120 230H840', p.floorLine, 1, 0.18);
+    // 地板透视
+    line('M120 220 40 320M270 220 190 320M420 220 340 320M570 220 490 320M720 220 640 320M840 220 840 320', p.floorLine, 1, 0.2);
+    line('M120 260H840M120 292H840', p.floorLine, 1, 0.12);
+    // 底座厚度
+    poly('40,320 920,320 920,334 40,334', '#050b14');
+    poly('120,220 840,220 840,228 120,228', p.frame, 0.45);
+
+    /* ---------- 窗 ---------- */
+    const winX = 150, winY = 64, winW = 310, winH = 140;
+    box(winX - 10, winY - 10, winW + 20, winH + 20, 12, p.frame);
+    box(winX, winY, winW, winH, 6, 'url(#' + id + 'sky)');
+    push(h('circle', { cx: 410, cy: 104, r: 22, fill: p.warm, opacity: 0.9 }));
+    push(h('circle', { cx: 410, cy: 104, r: 42, fill: p.warm, opacity: 0.12 }));
+    // 窗外城市
+    push(h('path', {
+      d: 'M150 204V168h26v36M184 204V146h28v58M220 204V176h22v28M250 204V156h34v48M292 204V132h24v72M324 204V164h30v40M362 204V150h34v54M404 204V172h36v32M448 204V158h12v46',
+      fill: p.bg2, opacity: 0.72,
+    }));
+    line('M150 204H460', p.accent, 1, 0.35);
+    line('M305 64V204M150 134H460', p.frame, 4, 0.95);
+    line('M305 64V204M150 134H460', p.accent, 1, 0.2);
+    // 窗光落在地板上
+    poly('150,204 460,204 600,320 0,320', p.accent, 0.035);
+    // 窗帘
+    poly('136,54 164,54 176,214 150,214', p.wallDark, 0.95);
+    poly('464,54 496,54 486,214 456,214', p.wallDark, 0.95);
+
+    /* ---------- 墙面装饰 ---------- */
+    if (key === 'start') {
+      box(620, 64, 118, 72, 6, p.frame);
+      box(628, 72, 102, 56, 3, p.wallDark);
+      push(h('circle', { cx: 660, cy: 100, r: 13, fill: p.warm, opacity: 0.65 }));
+      poly('628,128 654,104 680,118 704,94 730,111 730,128', p.green, 0.45);
+      line('M622 150H736', p.floorLine, 4, 0.8);
+    } else if (key === 'family') {
+      box(600, 62, 74, 58, 5, p.frame);
+      box(608, 70, 58, 42, 3, p.wallDark);
+      push(h('circle', { cx: 628, cy: 90, r: 8, fill: p.warm, opacity: 0.65 }));
+      push(h('circle', { cx: 648, cy: 90, r: 7, fill: p.accent, opacity: 0.5 }));
+      box(686, 70, 58, 46, 5, p.frame);
+      box(694, 78, 42, 30, 3, p.wallDark);
+      line('M700 98 714 86 728 93 736 84', p.green, 3, 0.75);
+      box(752, 58, 76, 62, 5, p.frame);
+      box(760, 66, 60, 46, 3, p.wallDark);
+      push(h('path', { d: 'M772 104c8-16 22-16 30 0z', fill: p.warm, opacity: 0.55 }));
+    } else if (key === 'mid') {
+      box(620, 62, 120, 72, 6, p.frame);
+      box(628, 70, 104, 56, 3, p.wallDark);
+      push(h('circle', { cx: 682, cy: 100, r: 21, fill: p.accent, opacity: 0.14 }));
+      push(h('circle', { cx: 682, cy: 100, r: 14, fill: 'none', stroke: p.accent, 'stroke-width': 2, opacity: 0.7 }));
+      line('M682 100V91M682 100l8 5', p.accent, 2, 0.75);
+      // 书架
+      box(760, 70, 62, 86, 4, p.frame);
+      for (let i = 0; i < 4; i++) {
+        box(766, 78 + i * 19, 50, 4, 2, p.wood, 0.8);
+        box(770, 82 + i * 19, 7 + (i % 2) * 5, 12, 1, i % 2 ? p.accent : p.warm, 0.55);
+        box(782, 82 + i * 19, 8, 12, 1, p.green, 0.5);
+      }
+    } else {
+      box(620, 66, 132, 78, 6, p.frame);
+      box(628, 74, 116, 62, 3, p.wallDark);
+      push(h('circle', { cx: 704, cy: 104, r: 24, fill: p.warm, opacity: 0.3 }));
+      poly('628,132 658,108 682,120 706,96 736,112 744,136 628,136', p.green, 0.45);
+      box(770, 84, 58, 74, 4, p.frame);
+      box(778, 92, 42, 58, 2, p.wallDark);
+      line('M784 140 796 118 808 128 816 110', p.warm, 2.5, 0.7);
+    }
+
+    /* ---------- 书桌（出发 / 中年） ---------- */
+    if (key === 'start' || key === 'mid') {
+      // 地毯
+      push(h('ellipse', { cx: 700, cy: 300, rx: 240, ry: 24, fill: p.rug, opacity: 0.85 }));
+      // 桌下阴影
+      push(h('ellipse', { cx: 700, cy: 305, rx: 155, ry: 16, fill: '#000', opacity: 0.28 }));
+      // 桌面
+      poly('560,226 830,226 862,250 592,250', p.wood);
+      poly('592,250 862,250 862,286 592,286', p.woodDark);
+      poly('830,226 862,250 862,286 830,262', '#24160f');
+      // 抽屉
+      box(660, 258, 82, 20, 3, '#1c110b', 0.9);
+      box(668, 264, 66, 3, 1, p.warm, 0.35);
+      box(760, 258, 82, 20, 3, '#1c110b', 0.9);
+      box(768, 264, 66, 3, 1, p.warm, 0.35);
+      // 桌腿
+      box(606, 286, 12, 30, 1, '#1c110b');
+      box(828, 286, 12, 30, 1, '#1c110b');
+      // 屏幕
+      box(652, 160, 104, 60, 5, '#050a12', 1, { stroke: p.accent, 'stroke-opacity': 0.35 });
+      box(660, 168, 88, 44, 3, p.accent, key === 'mid' ? 0.22 : 0.16);
+      for (let i = 0; i < 3; i++) box(668, 176 + i * 10, 52 - i * 8, 3, 1, p.accent, 0.45);
+      // 屏幕支架
+      poly('696,220 728,220 734,230 690,230', '#050a12');
+      // 键盘
+      poly('636,232 742,232 756,242 650,242', '#1f2937');
+      // 纸张
+      poly('770,232 818,232 826,240 778,240', '#d6c7b0', 0.85);
+      box(780, 236, 28, 2, 1, p.woodDark, 0.5);
+      // 咖啡
+      box(824, 228, 16, 14, 3, p.accent, 0.65);
+      push(h('path', { d: 'M840 232h6a3 3 0 0 1 0 6h-6', fill: 'none', stroke: p.accent, 'stroke-width': 2 }));
+      // 台灯
+      line('M780 146V228', '#d9d2c3', 4, 1);
+      poly('760,146 800,146 792,166 768,166', p.warm, 0.95);
+      push(h('circle', { cx: 780, cy: 162, r: 30, fill: 'url(#' + id + 'warm)', opacity: 0.5 }));
+      push(h('circle', { cx: 780, cy: 158, r: 5, fill: '#fff7d6' }));
+      // 椅子
+      box(610, 258, 74, 9, 4, '#111827');
+      box(620, 266, 54, 34, 4, p.fabric, 0.9);
+      box(626, 300, 8, 14, 2, '#111827');
+      box(666, 300, 8, 14, 2, '#111827');
+      // 植物
+      poly('862,266 902,266 896,308 868,308', '#2b1c14');
+      push(h('path', { d: 'M882 266c-18-20-10-38 2-48 10 16 18 30 2 48z', fill: p.green, opacity: 0.9 }));
+      push(h('path', { d: 'M882 266c-22-8-32-22-30-38 18 4 28 18 30 38z', fill: p.green, opacity: 0.65 }));
+      push(h('path', { d: 'M882 266c18-10 28-24 26-38-16 4-24 18-26 38z', fill: p.green, opacity: 0.55 }));
+      // 背包（出发）
+      if (key === 'start') {
+        poly('180,250 238,250 238,296 230,304 188,304 180,296', p.fabric);
+        push(h('path', { d: 'M198 250v-9a11 11 0 0 1 22 0v9', fill: 'none', stroke: p.accent, 'stroke-width': 4, opacity: 0.6 }));
+        box(196, 268, 24, 4, 2, p.accent, 0.45);
+        box(196, 280, 24, 4, 2, p.accent, 0.3);
+        line('M180 280h-16M238 280h16', p.accent, 4, 0.45);
+      }
+    } else {
+      /* ---------- 沙发 / 扶手椅（成家 / 慢下来） ---------- */
+      push(h('ellipse', { cx: 700, cy: 304, rx: 250, ry: 22, fill: p.rug, opacity: 0.85 }));
+      push(h('ellipse', { cx: 700, cy: 306, rx: 170, ry: 18, fill: '#000', opacity: 0.28 }));
+      // 沙发背
+      box(548, 190, 300, 54, 16, p.sofaDark);
+      box(558, 198, 120, 40, 12, p.sofa);
+      box(686, 198, 120, 40, 12, p.sofa);
+      // 坐垫
+      box(548, 232, 300, 46, 14, p.sofa);
+      box(566, 240, 116, 28, 10, p.fabric, 0.7);
+      box(700, 240, 116, 28, 10, p.fabric, 0.6);
+      // 扶手
+      box(536, 224, 30, 54, 12, p.sofaDark);
+      box(850, 224, 30, 54, 12, p.sofaDark);
+      // 腿
+      box(562, 278, 12, 22, 2, '#1c110b');
+      box(826, 278, 12, 22, 2, '#1c110b');
+      // 边几
+      poly('842,248 920,248 936,262 858,262', p.wood);
+      box(858, 262, 78, 8, 2, p.woodDark);
+      box(862, 270, 8, 32, 1, '#1c110b');
+      box(922, 270, 8, 32, 1, '#1c110b');
+      // 茶
+      box(874, 238, 17, 14, 3, p.accent, 0.75);
+      push(h('path', { d: 'M891 242h6a3 3 0 0 1 0 6h-6', fill: 'none', stroke: p.accent, 'stroke-width': 2 }));
+      // 咖啡桌
+      poly('640,268 792,268 810,282 658,282', p.wood);
+      box(658, 282, 152, 6, 2, p.woodDark);
+      box(664, 288, 8, 24, 1, '#1c110b');
+      box(794, 288, 8, 24, 1, '#1c110b');
+      // 茶几上的书和杯子
+      box(688, 260, 34, 6, 2, p.accent, 0.55);
+      box(694, 254, 28, 5, 2, p.warm, 0.6);
+      box(748, 260, 14, 12, 3, p.accent, 0.7);
+      // 家庭照片 / 猫
+      if (key === 'family') {
+        box(200, 250, 52, 40, 5, p.warm, 0.14);
+        box(206, 256, 18, 18, 3, p.warm, 0.55);
+        box(228, 256, 18, 18, 3, p.accent, 0.5);
+        box(272, 272, 20, 20, 4, p.warm, 0.55);
+        box(296, 282, 14, 14, 3, p.accent, 0.45);
+      }
+      if (key === 'late') {
+        // 猫
+        push(h('ellipse', { cx: 330, cy: 286, rx: 30, ry: 17, fill: p.warm, opacity: 0.9 }));
+        push(h('path', { d: 'M310 278l-6-15 14 8M350 278l6-15-14 8', fill: p.warm, opacity: 0.9 }));
+        push(h('path', { d: 'M360 282c18 5 22 20 9 27', fill: 'none', stroke: p.warm, 'stroke-width': 5, 'stroke-linecap': 'round', opacity: 0.85 }));
+        push(h('circle', { cx: 324, cy: 283, r: 2, fill: '#111827' }));
+        push(h('circle', { cx: 337, cy: 283, r: 2, fill: '#111827' }));
+        // 书堆
+        box(220, 250, 46, 8, 2, p.accent, 0.55);
+        box(224, 242, 42, 8, 2, p.warm, 0.6);
+        box(228, 234, 36, 8, 2, p.green, 0.55);
+      }
+    }
+
+    /* ---------- 灯带 / 浮尘 ---------- */
+    line('M120 40H840', p.frame, 6, 0.85);
+    line('M120 41H840', p.accent, 1, 0.2);
+    for (const [x, y, r] of [[100, 130, 2], [500, 72, 1.6], [560, 120, 1.4], [900, 180, 1.8], [300, 300, 1.5]]) {
+      push(h('circle', { cx: x, cy: y, r, fill: p.accent, opacity: 0.35 }));
+    }
+
+    const svg = h('svg.scene-svg', {
+      viewBox: '0 0 960 320',
+      preserveAspectRatio: 'xMidYMid slice',
+      role: 'img',
+      'aria-label': meta.label + '的人生阶段插画',
+    }, parts);
+
+    return h('div.life-scene' + (compact ? '.compact' : ''), [
+      svg,
+      h('div.scene-caption', [
+        h('span.scene-kicker', '人生阶段'),
+        h('strong', meta.label),
+        h('span.scene-range', meta.range + ' · ' + meta.note),
+      ]),
+    ]);
+  }
+
+  /* ============================================================
    * 基础容器
    * ========================================================== */
 
@@ -139,8 +514,8 @@
   function fateBadge(seed, locked) {
     return h('span.fate-badge' + (locked ? '.locked' : ''), [
       h('span.lock', locked ? '🔒' : '🎲'),
-      h('span', '命运种子 #' + seed),
-      locked ? h('span.chip.teal', { style: { height: '18px', padding: '0 7px' } }, '已锁定') : null,
+      h('span', '世界编号 #' + seed),
+      locked ? h('span.chip.teal', { style: { height: '18px', padding: '0 7px' } }, '锁住了') : null,
     ]);
   }
 
@@ -482,8 +857,9 @@
 
   function modeCard(opts) {
     const { icon, title, desc, tag, hint, glow, line, onClick } = opts;
+    const glyph = icon ? (LS.ui.icon(icon, 30) || icon) : icon;
     const el = h('div.mode-card', { onclick: onClick }, [
-      h('div.mc-ico', icon),
+      h('div.mc-ico', glyph),
       h('div.mc-title', title),
       h('div.mc-desc', desc),
       h('div.mc-tag', tag),
@@ -608,7 +984,7 @@
     button, iconButton, segmented, chip, fateBadge, slider, switchRow,
     progressBar, percentileScale, legend, notice, emptyState, toast, floatChip,
     modal, table, probBar, eventCard, simulationProgress, modeCard,
-    careerChip, economyChip, economyStrip,
+    careerChip, economyChip, economyStrip, icon, lifeScene, stageOfAge,
     head, section, metricGrid, defRow, defList,
   };
 })(typeof globalThis !== 'undefined' ? globalThis : this);

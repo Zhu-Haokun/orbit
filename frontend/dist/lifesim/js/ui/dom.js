@@ -11,6 +11,11 @@
   const LS = (global.LifeSim = global.LifeSim || {});
 
   const SVG_NS = 'http://www.w3.org/2000/svg';
+  const SVG_TAGS = new Set([
+    'svg', 'g', 'path', 'circle', 'ellipse', 'rect', 'line',
+    'polyline', 'polygon', 'defs', 'linearGradient', 'radialGradient',
+    'stop', 'text', 'tspan', 'use',
+  ]);
 
   /**
    * 创建元素。
@@ -36,11 +41,15 @@
       tag = String(spec);
     }
 
-    const el = tag === 'svg' || tag === 'path' || tag === 'circle' || tag === 'g'
+    const isSvg = SVG_TAGS.has(tag);
+    const el = isSvg
       ? document.createElementNS(SVG_NS, tag)
       : document.createElement(tag);
     if (id) el.id = id;
-    if (classes.length) el.className = classes.join(' ');
+    if (classes.length) {
+      if (isSvg) el.setAttribute('class', classes.join(' '));
+      else el.className = classes.join(' ');
+    }
 
     // props 可能是子节点
     let attrs = null;

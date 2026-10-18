@@ -2,9 +2,10 @@
  * LifeSim · views/compare.js
  * 策略对照（规格书 §14、§48）
  *
- * 科学设计的关键：**锁定世界种子**。
- * 不锁种子时，两组的差异里混着"运气"；锁种子后，差异才主要来自选择。
- * 这一页必须让用户理解这一点，否则对照实验就是自欺欺人。
+ * 这一页只想回答一个很朴素的问题：
+ *   “如果只改一个选择，人生会差多少？”
+ * 锁住运气时，差别更可能来自选择；没锁时，差别里会混进运气。
+ * 不用把它讲成实验设计课。
  * ============================================================ */
 (function (global) {
   'use strict';
@@ -25,11 +26,11 @@
 
     if (!st.character || !st.strategy) {
       return V.render({ title: '策略对照', sub: '' }, [
-        V.head({ kicker: '第 5 步 / 共 5 步', title: '策略对照' }),
+        V.head({ kicker: '两种活法', title: '先活一遍，再来比较' }),
         V.needRun({
           icon: '⚖️',
-          title: '还没有可以对照的策略',
-          desc: '对照实验需要先有一套基准策略。先生成一条人生，或者直接在设计页调好滑块再回来。',
+          title: '还没有可以对照的活法',
+          desc: '先设计一个人生，或者直接去设计页把滑块调好，再回来看看另一种选择。',
         }),
       ]);
     }
@@ -38,9 +39,9 @@
     const baseKey = presetKeys.find((k) => keyOf(C.STRATEGY_PRESETS[k].values) === keyOf(st.strategy)) || 'balanced';
 
     let arms = [
-      { name: '方案 A', preset: baseKey, strategy: { ...st.strategy } },
+      { name: '活法 A', preset: baseKey, strategy: { ...st.strategy } },
       {
-        name: '方案 B',
+        name: '活法 B',
         preset: presetKeys.find((k) => k !== baseKey) || 'steady',
         strategy: LS.character.strategyFromPreset(presetKeys.find((k) => k !== baseKey) || 'steady'),
       },
@@ -62,15 +63,15 @@
      * ========================================================== */
     function setupCard() {
       return LS.ui.card({
-        title: '对照实验设置',
-        sub: '只改变你想验证的那一个变量，其余全部保持一致',
+        title: '两种活法',
+        sub: '只改一个选择，其他都一样。看看差别有多大。',
         body: [
           h('div', { style: { marginBottom: 'var(--s-4)' } },
-            LS.ui.notice([
-              h('b', '锁定命运种子是这一页最重要的一步。'),
-              h('br'),
-              '两种方案使用完全相同的世界随机事件序列，差异就只可能来自你的策略选择。不锁种子的话，两种方案的差异里混着运气，样本量再大也说明不了问题。',
-            ], lockWorldSeed ? 'ok' : 'warn')),
+            LS.ui.notice(
+              lockWorldSeed
+                ? '运气已经锁住。两边遇到的是同一串事，差别更可能来自你的选择。'
+                : '没锁运气也没关系。只是差别里会混进一点运气——图个乐，别太当真。',
+              lockWorldSeed ? 'ok' : 'warn')),
 
           h('div.compare-arms', arms.map((arm, i) => armCard(arm, i))),
 
@@ -84,11 +85,11 @@
 
           h('div', { style: { height: 'var(--s-4)' } }),
           h('div.row.gap-3.wrap', [
-            LS.ui.button('对比两个未来', {
+            LS.ui.button('看看两种未来', {
               variant: 'primary', size: 'lg', id: 'run-compare',
               onClick: () => run(),
             }),
-            LS.ui.button('把 A 换成当前策略', {
+            LS.ui.button('A 用我现在的活法', {
               variant: 'ghost',
               onClick: () => { arms[0].strategy = { ...st.strategy }; arms[0].preset = baseKey; rebuild(); },
             }),
@@ -139,32 +140,32 @@
 
     function lockBox() {
       return h('div.mini-box', [
-        h('div.mb-title', '🔒 随机性控制'),
+        h('div.mb-title', '🍀 运气开关'),
         LS.ui.switchRow({
-          name: '锁定世界种子',
+          name: '锁住这次的运气',
           checked: lockWorldSeed,
           onChange: (v) => { lockWorldSeed = v; rebuild(); },
         }),
         h('div.mb-note', lockWorldSeed
-          ? '开启：两组共享同一经济曲线，差异来自策略'
-          : '关闭：两组各自随机，差异混合了运气'),
+          ? '锁住：两边遇到同一串事'
+          : '没锁：两边各自碰运气'),
       ]);
     }
 
     function sizeBox() {
       return h('div.mini-box', [
-        h('div.mb-title', '📊 每组样本量'),
+        h('div.mb-title', '🎬 每种活法演多少遍'),
         LS.ui.segmented(
           [1000, 5000, 20000, 50000].map((v) => ({ value: v, label: U.int(v) })),
           sampleSize, (v) => { sampleSize = v; rebuild(); },
         ),
-        h('div.mb-note', `每组 ${U.int(sampleSize)} 条，共 ${U.int(sampleSize * 2)} 条人生`),
+        h('div.mb-note', `每种 ${U.int(sampleSize)} 次，一共 ${U.int(sampleSize * 2)} 次人生`),
       ]);
     }
 
     function seedBox() {
       return h('div.mini-box', [
-        h('div.mb-title', '🎲 命运种子'),
+        h('div.mb-title', '🌍 这次的世界编号'),
         h('div.seed-row', [
           h('input.input', {
             type: 'number', value: String(worldSeed), id: 'cmp-seed',
@@ -179,7 +180,7 @@
             },
           }),
         ]),
-        h('div.mb-note', '换一个种子再跑一次，看结论是否稳定 —— 这叫稳健性检验'),
+        h('div.mb-note', '换个编号再演一次，看看结论是不是还站得住'),
       ]);
     }
 
@@ -196,7 +197,7 @@
       mount(elProgress, [h('div', { style: { marginTop: 'var(--s-4)' } }, prog.el)]);
       const btn = document.getElementById('run-compare');
       if (btn) { btn.disabled = true; btn.textContent = '对比中……'; }
-      LS.shell.setStatus('正在对比两种策略……', 'ok');
+      LS.shell.setStatus('正在把两种活法各演一遍……', 'ok');
 
       try {
         const params = {
@@ -246,29 +247,29 @@
 
     function introCard() {
       return LS.ui.card({
-        title: '还没跑对照',
-        sub: '你会得到什么',
+        title: '还没开始比较',
+        sub: '你会看到什么',
         body: [
           h('div.grid.g-2', [
             h('div', [
-              h('div.card-title', { style: { fontSize: '14px' } }, '① 差异是否真实'),
+              h('div.card-title', { style: { fontSize: '14px' } }, '① 差别是不是运气'),
               h('p', { style: { color: 'var(--t-2)', lineHeight: '1.7', fontSize: 'var(--f-sm)' } },
-                'Bootstrap 重抽样给出"两组平均财富之差"的 95% 置信区间。如果区间跨过 0，就不能说哪个更好 —— 差异可能纯粹是抽样噪声。'),
+                '先看两边差多少，再看看这点差别是不是可能只是运气。'),
             ]),
             h('div', [
-              h('div.card-title', { style: { fontSize: '14px' } }, '② 谁的分布更宽'),
+              h('div.card-title', { style: { fontSize: '14px' } }, '② 谁的日子更稳'),
               h('p', { style: { color: 'var(--t-2)', lineHeight: '1.7', fontSize: 'var(--f-sm)' } },
-                '平均更高不等于更值得选。箱线图会告诉你哪一组的 P05 更低（下限更危险），以及中位数与均值的差距。'),
+                '平均高不代表过得好。看看中位数，再看看最差的那 5% 是什么样。'),
             ]),
             h('div', [
-              h('div.card-title', { style: { fontSize: '14px' } }, '③ 逐条人生的胜负'),
+              h('div.card-title', { style: { fontSize: '14px' } }, '③ 同一个人，两种活法'),
               h('p', { style: { color: 'var(--t-2)', lineHeight: '1.7', fontSize: 'var(--f-sm)' } },
-                '在锁定种子的条件下，可以逐条比较"同一个人的两种人生"。胜率比平均值更直观：它回答"如果我反复重来，哪边赢的次数更多"。'),
+                '锁住运气时，可以逐条比较同一个人在不同选择下的结果。'),
             ]),
             h('div', [
               h('div.card-title', { style: { fontSize: '14px' } }, '④ 代价是什么'),
               h('p', { style: { color: 'var(--t-2)', lineHeight: '1.7', fontSize: 'var(--f-sm)' } },
-                '财富更高往往伴随健康、幸福或破产概率的恶化。所以报告里同时给出全部六个维度，而不是只比钱。'),
+                '钱多一点，可能健康、关系或破产概率更差。报告会把这些一起摆出来。'),
             ]),
           ]),
         ],
@@ -281,45 +282,45 @@
 
       /* ---- 结论 ---- */
       const head = h('div.card.roomy', [
-        h('div.eyebrow', '对照结论'),
+        h('div.eyebrow', '所以呢？'),
         h('h2.h2', { style: { marginTop: '4px' } }, verdictTitle(test, res)),
         h('div.lead', { style: { marginTop: '8px', maxWidth: '82ch' } }, verdictBody(test, A, B, res)),
         h('div', { style: { height: 'var(--s-5)' } }),
         h('div.grid.g-4', [
           LS.ui.metric({
-            label: '平均财富差（A − B）',
+            label: '两种活法的平均差（A − B）',
             value: (test && isFinite(test.diff) ? (test.diff >= 0 ? '+' : '') + U.money(test.diff) : '—'),
             size: 'lg', tone: test && test.ci && test.ci[0] > 0 ? 'ok' : test && test.ci && test.ci[1] < 0 ? 'bad' : 'warn',
             note: test && test.ci
-              ? `95% CI [${U.money(test.ci[0])}, ${U.money(test.ci[1])}]`
+              ? `95% 区间 [${U.money(test.ci[0])}, ${U.money(test.ci[1])}]`
               : '',
           }),
           LS.ui.metric({
-            label: '逐条胜率（A 胜过 B）',
+            label: '同一个人反复重来，A 赢的次数',
             value: test && isFinite(test.winRate) ? U.pct(test.winRate, 1) : '—',
             size: 'lg', tone: test && test.winRate > 0.55 ? 'ok' : test && test.winRate < 0.45 ? 'bad' : 'warn',
-            note: '同一个命运种子下逐条比较',
+            note: '同一个世界编号下逐条比较',
           }),
           LS.ui.metric({
-            label: '差异显著性',
+            label: '这个差像不像运气',
             value: significance(test),
             size: 'lg',
             tone: test && test.ci && (test.ci[0] > 0 || test.ci[1] < 0) ? 'ok' : 'warn',
-            note: '区间是否跨过 0',
+            note: '跨过 0 就说不准',
           }),
           LS.ui.metric({
-            label: lockWorldSeed ? '随机性' : '⚠ 未锁定种子',
-            value: lockWorldSeed ? '已控制' : '未控制',
+            label: lockWorldSeed ? '运气' : '⚠ 没锁运气',
+            value: lockWorldSeed ? '锁住了' : '没锁',
             size: 'lg', tone: lockWorldSeed ? 'ok' : 'bad',
-            note: lockWorldSeed ? '差异主要来自策略' : '差异混合了运气，结论仅供参考',
+            note: lockWorldSeed ? '两边遇到的是同一串事' : '两边各自碰运气，别太当真',
           }),
         ]),
       ]);
 
       /* ---- 箱线图 ---- */
       const box = LS.ui.chartCard({
-        title: '财富分布对比',
-        sub: '箱体 = P25–P75 · 粗线 = 中位数 · 菱形 = 平均值 · 须 = P05–P95',
+        title: '两种活法的财富分布',
+        sub: '箱体 = 中间一半人 · 粗线 = 中位数 · 菱形 = 平均 · 须 = 大多数人的范围',
         minHeight: 340,
         onMount: (host) => {
           LS.charts.create('boxplot', host, {
@@ -355,8 +356,8 @@
       });
 
       const table = LS.ui.card({
-        title: '六维详细对照',
-        sub: '平均更高不代表更好 —— 中位数与尾部风险往往更接近真实体验',
+        title: '六个维度，一起看',
+        sub: '别只看钱 —— 健康、关系、幸福也可能被悄悄换走',
         body: [LS.ui.table(
           ['指标', 'A 平均', 'B 平均', '平均差', 'A 中位数', 'B 中位数'],
           rows,
@@ -375,8 +376,8 @@
 
       /* ---- 尾部差异 ---- */
       const tailDiff = LS.ui.card({
-        title: '极端情况下的差异',
-        sub: '平均值相近时，尾部差异往往才是关键',
+        title: '如果运气特别差 / 特别好',
+        sub: '平均值差不多时，极端的那些人差别更大',
         body: h('div.grid.g-2', res.arms.map((arm, i) => {
           const sm = arm.result.summary.wealth;
           const pct = arm.result.percentiles.wealth;
@@ -386,10 +387,10 @@
               h('b', arm.name + ' · ' + presetLabel(arm.strategy)),
             ]),
             h('div.def-list', [
-              V.defRow('最差 5% 平均（CVaR）', U.money(sm.cvar95), 'bad'),
-              V.defRow('5% 分位（VaR）', U.money(sm.var95), sm.var95 < 0 ? 'bad' : 'warn'),
-              V.defRow('P95（乐观情形）', U.money(pct.p95), 'gold'),
-              V.defRow('标准差', U.money(sm.std)),
+              V.defRow('最差 5% 平均', U.money(sm.cvar95), 'bad'),
+              V.defRow('5% 分位', U.money(sm.var95), sm.var95 < 0 ? 'bad' : 'warn'),
+              V.defRow('乐观情形（P95）', U.money(pct.p95), 'gold'),
+              V.defRow('波动', U.money(sm.std)),
               V.defRow('负债概率', U.pct(sm.probabilityOfLoss, 2),
                 sm.probabilityOfLoss > 0.05 ? 'bad' : 'warn'),
             ]),
@@ -400,20 +401,15 @@
       /* ---- 建议 ---- */
       const advice = LS.ui.card({
         title: '该选哪个？',
-        sub: '软件不会替你做决定，但可以告诉你代价',
-        body: [
-          adviceText(test, A, B, res),
-          h('div', { style: { height: 'var(--s-3)' } }),
-          h('div.grid.g-3', ['confidence_interval', 'decision_theory', 'ruin']
-            .map((id) => LS.knowledge.card(id, { compact: true }))),
-        ],
+        sub: '没有标准答案，只有代价',
+        body: [adviceText(test, A, B, res)],
       });
 
       return [
         head, gap(), h('div.split-63', [box, tailDiff]), gap(), table, gap(), advice,
         gap(),
         h('div.row.gap-3.wrap', [
-          LS.ui.button('换一个种子再跑一次（稳健性检验）', {
+          LS.ui.button('再换一个世界演一次', {
             variant: 'primary',
             onClick: () => {
               worldSeed = (Math.floor(Math.random() * 899999) + 100000) >>> 0;
@@ -421,7 +417,7 @@
               setTimeout(run, 60);
             },
           }),
-          LS.ui.button('把赢的那套策略拿去重演 10,000 次', {
+          LS.ui.button('把赢的那套活法拿去演一万遍', {
             variant: 'ghost',
             onClick: () => {
               const winner = (test && test.diff > 0) ? 0 : 1;
@@ -438,31 +434,31 @@
 
     /* ---------- 文案 ---------- */
     function verdictTitle(test, res) {
-      if (!test || !isFinite(test.diff)) return '两组差异无法计算';
+      if (!test || !isFinite(test.diff)) return '这次没算出来';
       const sig = test.ci[0] > 0 || test.ci[1] < 0;
-      if (!sig) return '两组之间没有统计上可靠的差异';
+      if (!sig) return '两种活法看起来差不多';
       const better = test.diff > 0 ? res.arms[0] : res.arms[1];
-      return `在控制随机性的条件下，${better.name} 的平均财富更高`;
+      return `锁住运气后，${better.name} 的平均日子更宽裕`;
     }
 
     function verdictBody(test, A, B, res) {
-      if (!test || !isFinite(test.diff)) return '样本量不足，无法给出结论。';
+      if (!test || !isFinite(test.diff)) return '演得还不够多，先别急着下结论。';
       const parts = [];
-      parts.push(`平均差为 ${U.money(Math.abs(test.diff))}，95% 置信区间为 [${U.money(test.ci[0])}, ${U.money(test.ci[1])}]。`);
+      parts.push(`平均下来，两边差了 ${U.money(Math.abs(test.diff))}。`);
       if (test.ci[0] > 0 || test.ci[1] < 0) {
-        parts.push('区间不包含 0，所以在当前样本量下可以认为差异是真实的。');
+        parts.push('这个差不太像运气能解释的。');
       } else {
-        parts.push('区间包含 0 —— 这意味着"差异"可能只是抽样波动。此时更该看的是分布形状与破产概率，而不是均值。');
+        parts.push('但这点差别也可能只是运气，先别太当真。');
       }
       if (isFinite(test.winRate)) {
-        parts.push(`逐条比较的胜率是 ${U.pct(test.winRate, 1)}。`);
+        parts.push(`如果同一个人反复重来，A 赢的次数占 ${U.pct(test.winRate, 1)}。`);
       }
       const pa = A.summary.wealth.probabilityOfLoss, pb = B.summary.wealth.probabilityOfLoss;
       if (Math.abs(pa - pb) > 0.005) {
-        parts.push(`但要注意风险：A 的负债概率是 ${U.pct(pa, 2)}，B 是 ${U.pct(pb, 2)}。`);
+        parts.push(`也要看代价：A 的负债概率是 ${U.pct(pa, 2)}，B 是 ${U.pct(pb, 2)}。`);
       }
       if (!res.lockWorldSeed) {
-        parts.push('⚠ 本次没有锁定世界种子，两组面对的经济环境不同，结论的因果解释要谨慎。');
+        parts.push('这次没锁运气，两边遇到的事不一样，别把差别全算在选择头上。');
       }
       return parts.join('');
     }
@@ -475,25 +471,25 @@
         const safer = pa > pb ? res.arms[1] : res.arms[0];
         out.push(h('p', { style: { lineHeight: '1.8', color: 'var(--t-2)' } }, [
           `「${riskier.name}」的负债概率比「${safer.name}」高 ${U.pct(Math.abs(pa - pb), 2)}。`,
-          '如果你的处境无法承受一次归零（比如没有家庭缓冲、没有可转换的技能），那么即使期望值更高，这个方案的实际效用也可能更低 —— 这就是风险厌恶的数学表达。',
+          '如果你现在经不起一次归零（没有家庭缓冲、没有能换饭吃的技能），那就算平均更高，这条路的实际日子也可能更难。',
         ]));
       } else {
         out.push(h('p', { style: { lineHeight: '1.8', color: 'var(--t-2)' } },
-          '两组的破产概率接近，说明主要差别在分布的中间部分，而不是尾部。这类差异相对"安全"，可以从容选择。'));
+          '两边的负债概率差不多，差别主要在中间那些普通年份，而不是极端情况。这种差别相对好承受。'));
       }
       out.push(h('p', { style: { lineHeight: '1.8', color: 'var(--t-2)' } }, [
-        '最后提醒：这里的"更好"只在模型的意义上成立。',
-        '模型简化了很多现实因素（家庭支持、行业周期、个体健康禀赋），所以它的价值在于让你看清',
-        h('b', '结构性权衡'),
-        '，而不是替你做出人生选择。',
+        '最后还是那句话：这里的“更好”只在这个小世界里成立。',
+        '现实里的家庭支持、行业周期、身体禀赋都没被完全建模，所以它只能帮你看清',
+        h('b', '权衡'),
+        '，不能替你选。',
       ]));
       return out;
     }
 
     function significance(test) {
       if (!test || !test.ci) return '—';
-      if (test.ci[0] > 0 || test.ci[1] < 0) return '显著';
-      return '不显著';
+      if (test.ci[0] > 0 || test.ci[1] < 0) return '像真的';
+      return '说不准';
     }
 
     function presetLabel(strategy) {
@@ -509,17 +505,17 @@
     /* ---------- 启动 ---------- */
     const page = V.render({
       title: '策略对照',
-      sub: '第 5 步 / 共 5 步',
+      sub: '两种活法',
       fate: { seed: worldSeed, locked: lockWorldSeed },
     }, [
       V.head({
-        kicker: '第 5 步 / 共 5 步',
+        kicker: 'A / B',
         title: '同样的命运，不同的选择',
-        sub: '这是全站最接近"科学实验"的一页：控制随机性，只改变一个变量，然后看差异是否真实存在。',
+        sub: '只动一个选择，看看两条路会把日子带到哪里。',
         tight: true,
         actions: [
-          LS.ui.button('回到设计页', { variant: 'ghost', size: 'sm', onClick: () => LS.router.go('/create') }),
-          LS.ui.button('看单个策略的分布', { variant: 'ghost', size: 'sm', onClick: () => LS.router.go('/universe') }),
+          LS.ui.button('改改选择', { variant: 'ghost', size: 'sm', onClick: () => LS.router.go('/create') }),
+          LS.ui.button('只看一种活法', { variant: 'ghost', size: 'sm', onClick: () => LS.router.go('/universe') }),
         ],
       }),
       elHead,
@@ -538,7 +534,7 @@
     return Object.keys(s).sort().map((k) => k + ':' + U.fixed(s[k], 2)).join('|');
   }
 
-  /** 缓存键：一组策略的指纹（顺序敏感，因为 A/B 是两个不同的方案） */
+  /** 缓存键：一组策略的指纹（顺序敏感，因为 A/B 是两种不同的活法） */
   function cacheKeyFor(strategies) {
     return strategies.map(keyOf).join('||');
   }

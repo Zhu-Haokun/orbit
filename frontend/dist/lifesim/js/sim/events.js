@@ -161,6 +161,35 @@
       },
     },
     {
+      id: 'child_school',
+      category: 'lifecycle',
+      title: '孩子上学',
+      icon: '🎒',
+      major: true,
+      minAge: 35, maxAge: 52,
+      cond: (c) => c.flags.hasChild && !c.flags.childSchool,
+      base: () => 0.04,
+      modifiers: (c) => [
+        { label: '教育投入', delta: 0.04 * c.strategy.educationPreference, kind: 'strategy' },
+        { label: '财富', delta: 0.02 * norm01(c.wealth, 20, 300), kind: 'wealth' },
+      ],
+      resolve(c, rng) {
+        const cost = rng.uniform(3, 18) * (1 + 0.4 * c.strategy.educationPreference);
+        return {
+          flags: { childSchool: true },
+          wealth: -cost,
+          happiness: -3,
+          relationship: +3,
+          narrative: `孩子上学了。择校、补课、接送，一年花掉约 ${fixed(cost, 1)} 万。`,
+          detail: [
+            { label: '教育支出', value: '-' + fixed(cost, 1) + ' 万' },
+            { label: '关系', value: '+3' },
+          ],
+          chip: '孩子上学',
+        };
+      },
+    },
+    {
       id: 'retirement',
       category: 'lifecycle',
       title: '退休',
@@ -416,7 +445,321 @@
       },
     },
 
+    {
+      id: 'buy_house',
+      category: 'opportunity',
+      title: '买房',
+      icon: '🏠',
+      major: true,
+      minAge: 26, maxAge: 45,
+      cond: (c) => !c.flags.houseOwned && (c.wealth >= 12 || c.familyResource === 'rich'),
+      base: () => 0.03,
+      modifiers: (c) => [
+        { label: '结婚', delta: c.flags.married ? 0.02 : 0, kind: 'social' },
+        { label: '财富基础', delta: 0.02 * norm01(c.wealth, 20, 300), kind: 'wealth' },
+        { label: '家庭支持', delta: c.familyResource === 'rich' ? 0.02 : 0, kind: 'family' },
+      ],
+      resolve(c, rng) {
+        const price = rng.uniform(80, 260);
+        const ratio = rng.uniform(0.25, 0.4);
+        const support = c.familyResource === 'rich' ? 60 : (c.familyResource === 'normal' ? 15 : 5);
+        const down = Math.min(price * ratio, Math.max(8, c.wealth + support));
+        const loan = Math.max(0, price - down);
+        return {
+          flags: { houseOwned: true },
+          wealth: -down,
+          happiness: +6,
+          relationship: +4,
+          health: -1,
+          narrative: `你买下一套约 ${fixed(price, 0)} 万的房子，首付 ${fixed(down, 1)} 万，贷款约 ${fixed(loan, 0)} 万。`,
+          detail: [
+            { label: '房价', value: fixed(price, 0) + ' 万' },
+            { label: '首付', value: '-' + fixed(down, 1) + ' 万' },
+            { label: '贷款', value: fixed(loan, 0) + ' 万' },
+          ],
+          chip: '有房了',
+        };
+      },
+    },
+    {
+      id: 'promotion',
+      category: 'opportunity',
+      title: '升职',
+      icon: '📈',
+      major: true,
+      minAge: 28, maxAge: 55,
+      cond: (c) => ['junior', 'senior'].includes(c.career),
+      base: () => 0.02,
+      modifiers: (c) => [
+        { label: '职业资本', delta: 0.03 * norm01(c.careerCapital, 20, 80), kind: 'capital' },
+        { label: '能力', delta: 0.02 * norm01(c.ability, 40, 95), kind: 'ability' },
+        { label: '教育', delta: 0.02 * c.education, kind: 'edu' },
+      ],
+      resolve(c) {
+        const next = c.career === 'junior' ? 'senior' : 'manager';
+        const incomeBase = Math.max(c.incomeBase * 1.18, C.INCOME[next].median * 0.9);
+        return {
+          career: next,
+          incomeBase,
+          careerCapital: +8,
+          happiness: +5,
+          health: -1,
+          narrative: `你被提拔为${C.CAREER_LABEL[next]}，收入涨了一截，责任也重了。`,
+          detail: [
+            { label: '职位', value: C.CAREER_LABEL[next] },
+            { label: '收入基准', value: '×1.18' },
+          ],
+          chip: '升职',
+        };
+      },
+    },
+
+    /* ---------------- B2. 人生里的小事 / 彩蛋 ---------------- */
+    {
+      id: 'old_friend',
+      category: 'opportunity',
+      title: '老友重逢',
+      icon: '☕',
+      major: false,
+      minAge: 28, maxAge: 62,
+      cond: (c) => c.age >= 28,
+      base: () => 0.03,
+      modifiers: (c) => [
+        { label: '社交投入', delta: 0.04 * c.strategy.socialPreference, kind: 'strategy' },
+        { label: '关系值', delta: 0.05 * norm01(c.relationship, 40, 95), kind: 'social' },
+        { label: '年龄', delta: c.age > 45 ? 0.02 : 0, kind: 'age' },
+      ],
+      resolve(c, rng) {
+        return {
+          relationship: +7,
+          happiness: +4,
+          narrative: '你在街角碰到一个很久没见的朋友，坐下聊了一下午。',
+          detail: [{ label: '关系', value: '+7' }, { label: '幸福', value: '+4' }],
+          chip: '老友重逢',
+        };
+      },
+    },
+    {
+      id: 'stray_cat',
+      category: 'rare',
+      title: '楼下的猫',
+      icon: '🐈',
+      major: false,
+      minAge: 24, maxAge: 55,
+      cond: (c) => !c.flags.hasPet,
+      base: () => 0.003,
+      modifiers: (c) => [
+        { label: '社交投入', delta: 0.002 * c.strategy.socialPreference, kind: 'strategy' },
+      ],
+      resolve(c, rng) {
+        const cost = rng.uniform(0.3, 1.5);
+        return {
+          flags: { hasPet: true },
+          wealth: -cost,
+          happiness: +3,
+          relationship: +2,
+          narrative: `你收养了一只流浪猫，第一年花掉约 ${fixed(cost, 1)} 万。`,
+          detail: [{ label: '支出', value: '-' + fixed(cost, 1) + ' 万' },
+                   { label: '幸福', value: '+3' }],
+          chip: '有猫了',
+        };
+      },
+    },
+    {
+      id: 'late_bloom',
+      category: 'opportunity',
+      title: '大器晚成',
+      icon: '🌼',
+      major: true,
+      minAge: 48, maxAge: 62,
+      cond: (c) => !c.flags.lateBloom &&
+        ['junior', 'senior', 'freelance', 'manager'].includes(c.career),
+      base: () => 0.006,
+      modifiers: (c) => [
+        { label: '职业资本', delta: 0.01 * norm01(c.careerCapital, 20, 80), kind: 'capital' },
+        { label: '教育', delta: 0.004 * c.education, kind: 'edu' },
+      ],
+      resolve(c) {
+        return {
+          flags: { lateBloom: true },
+          careerCapital: +12,
+          incomeBase: Math.max(c.incomeBase * 1.3, C.INCOME.senior.median),
+          happiness: +5,
+          narrative: '前半生一直普普通通，五十岁之后，你突然等到了一个真正适合自己的机会。',
+          detail: [{ label: '收入基准', value: '×1.3' }, { label: '幸福', value: '+5' }],
+          chip: '大器晚成',
+        };
+      },
+    },
+    {
+      id: 'side_hustle',
+      category: 'opportunity',
+      title: '一份副业',
+      icon: '🌙',
+      major: false,
+      minAge: 25, maxAge: 45,
+      cond: (c) => !c.flags.hasSideHustle &&
+        ['junior', 'senior', 'freelance'].includes(c.career),
+      base: () => 0.03,
+      modifiers: (c) => [
+        { label: '能力', delta: 0.02 * norm01(c.ability, 40, 95), kind: 'ability' },
+        { label: '社交投入', delta: 0.015 * c.strategy.socialPreference, kind: 'strategy' },
+      ],
+      resolve(c, rng) {
+        return {
+          flags: { hasSideHustle: true },
+          incomeMult: 1.12,
+          health: -2,
+          happiness: +2,
+          narrative: '你开始在下班后做一点自己的小生意，收入多了一点，睡眠少了一点。',
+          detail: [{ label: '收入', value: '×1.12' }, { label: '健康', value: '-2' }],
+          chip: '斜杠青年',
+        };
+      },
+    },
+
     /* ---------------- C. 风险事件 ---------------- */
+    {
+      id: 'parent_illness',
+      category: 'risk',
+      title: '父母生病',
+      icon: '🩺',
+      major: true,
+      minAge: 35, maxAge: 65,
+      cond: (c) => !c.flags.parentIllness,
+      base: () => 0.012,
+      modifiers: (c) => [
+        { label: '年龄', delta: c.age >= 45 ? 0.008 : 0, kind: 'age' },
+        { label: '家庭责任', delta: c.flags.married ? 0.004 : 0, kind: 'social' },
+      ],
+      resolve(c, rng) {
+        const cost = rng.uniform(5, 35);
+        return {
+          flags: { parentIllness: true },
+          wealth: -cost,
+          happiness: -6,
+          health: -1,
+          relationship: +2,
+          narrative: `父母生了一场病。你请了假、跑了几趟医院，花掉约 ${fixed(cost, 1)} 万。`,
+          detail: [
+            { label: '医疗与照护', value: '-' + fixed(cost, 1) + ' 万' },
+            { label: '幸福', value: '-6' },
+          ],
+          chip: '父母生病',
+        };
+      },
+    },
+    {
+      id: 'divorce',
+      category: 'risk',
+      title: '离婚',
+      icon: '💔',
+      major: true,
+      minAge: 30, maxAge: 55,
+      cond: (c) => c.flags.married && !c.flags.divorced,
+      base: () => 0.01,
+      modifiers: (c) => [
+        { label: '关系值', delta: c.relationship < 45 ? 0.015 : -0.004, kind: 'social' },
+        { label: '压力', delta: c.health < 50 ? 0.005 : 0, kind: 'health' },
+      ],
+      resolve(c, rng) {
+        const split = Math.max(0, c.wealth) * rng.uniform(0.25, 0.5);
+        return {
+          flags: { married: false, divorced: true },
+          wealth: -split,
+          happiness: -10,
+          relationship: -12,
+          health: -1,
+          narrative: split > 0
+            ? `你们决定分开。存款和房子分割之后，你分掉约 ${fixed(split, 1)} 万。`
+            : '你们决定分开。没有太多可分割的东西，但日子还是要重新开始。',
+          detail: [
+            { label: '财产分割', value: split > 0 ? '-' + fixed(split, 1) + ' 万' : '—' },
+            { label: '幸福', value: '-10' },
+          ],
+          chip: '分开了',
+        };
+      },
+    },
+    {
+      id: 'accident',
+      category: 'risk',
+      title: '意外事故',
+      icon: '🚑',
+      major: true,
+      minAge: 18, maxAge: 75,
+      cond: (c) => !c.flags.hadAccident,
+      base: () => 0.002,
+      modifiers: (c) => [
+        { label: '工作/通勤风险', delta: 0.003 * (1 - c.strategy.healthPriority), kind: 'strategy' },
+        { label: '年龄', delta: c.age > 55 ? 0.002 : 0, kind: 'age' },
+      ],
+      resolve(c, rng) {
+        const cost = rng.uniform(2, 20);
+        const injury = rng.uniform(3, 10);
+        return {
+          flags: { hadAccident: true },
+          wealth: -cost,
+          health: -injury,
+          happiness: -4,
+          narrative: `你遇到一次意外，住了院。治疗和休养花掉约 ${fixed(cost, 1)} 万，身体也受了伤。`,
+          detail: [
+            { label: '医疗支出', value: '-' + fixed(cost, 1) + ' 万' },
+            { label: '健康', value: '-' + fixed(injury, 1) },
+          ],
+          chip: '意外事故',
+        };
+      },
+    },
+    {
+      id: 'scam',
+      category: 'risk',
+      title: '被骗',
+      icon: '🪤',
+      major: false,
+      minAge: 25, maxAge: 65,
+      cond: (c) => !c.flags.scammed,
+      base: () => 0.003,
+      modifiers: (c) => [
+        { label: '投资倾向', delta: 0.006 * c.strategy.investmentRisk, kind: 'strategy' },
+        { label: '社交投入', delta: 0.002 * c.strategy.socialPreference, kind: 'strategy' },
+      ],
+      resolve(c, rng) {
+        const loss = rng.uniform(1, 18);
+        return {
+          flags: { scammed: true },
+          wealth: -loss,
+          happiness: -5,
+          narrative: `一个看起来很像机会的骗局，卷走了你约 ${fixed(loss, 1)} 万。`,
+          detail: [{ label: '损失', value: '-' + fixed(loss, 1) + ' 万' }],
+          chip: '被骗',
+        };
+      },
+    },
+    {
+      id: 'burnout',
+      category: 'risk',
+      title: '职业倦怠',
+      icon: '🫠',
+      major: false,
+      minAge: 26, maxAge: 58,
+      cond: (c) => ['junior', 'senior', 'manager', 'freelance', 'entrepreneur'].includes(c.career) && !c.flags.burnout,
+      base: () => 0.006,
+      modifiers: (c) => [
+        { label: '健康投入', delta: 0.02 * (1 - c.strategy.healthPriority), kind: 'strategy' },
+        { label: '身体状态', delta: c.health < 55 ? 0.01 : 0, kind: 'health' },
+      ],
+      resolve() {
+        return {
+          flags: { burnout: true },
+          health: -2,
+          happiness: -3,
+          narrative: '连续加班之后，你开始失眠、掉头发。身体先于意识发出了警告。',
+          detail: [{ label: '健康', value: '-4' }, { label: '幸福', value: '-3' }],
+          chip: '职业倦怠',
+        };
+      },
+    },
     {
       id: 'layoff',
       category: 'risk',

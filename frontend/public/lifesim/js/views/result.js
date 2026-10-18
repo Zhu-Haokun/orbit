@@ -29,11 +29,11 @@
     const { full, card } = currentFull();
     if (!card) {
       return V.render({ title: '人生报告', sub: '' }, [
-        V.head({ kicker: '第 3 步 / 共 5 步', title: '人生报告' }),
+        V.head({ kicker: '回头看', title: '人生报告' }),
         V.needRun({
           icon: '📄',
           title: '还没有可以分析的人生',
-          desc: '报告需要一个完整的人生记录。先生成一条人生（大约 5 秒），这里就会出现财富曲线、事件概率复盘和五维评价。',
+          desc: '报告需要一个完整的人生记录。先生成一条人生，这里就会出现财富曲线、这一生的几个瞬间和五维评价。',
         }),
       ]);
     }
@@ -53,6 +53,12 @@
             `${r.lifespan} 岁的人生，${C.CAREER_LABEL[r.finalCareer] || r.finalCareer}`),
           h('div.lead', { style: { marginTop: '8px', maxWidth: '64ch' } },
             verdict(r)),
+          r.deathCause ? h('div', { style: { marginTop: 'var(--s-3)', maxWidth: '64ch' } },
+            LS.ui.notice([
+              h('b', `${r.lifespan} 岁离世 · ${r.deathCause.label}`),
+              h('br'),
+              r.deathCause.note,
+            ], 'warn')) : null,
         ]),
         h('div.row.gap-2.wrap', [
           LS.ui.button('重演 10,000 次', {
@@ -67,7 +73,7 @@
       ]),
       h('div', { style: { height: 'var(--s-5)' } }),
       h('div.grid.g-6', [
-        bigMetric('最终财富', U.money(r.finalWealth), V.wealthTone(r.finalWealth), '一生结束时的净资产'),
+        bigMetric('最终财富', U.money(r.finalWealth), V.wealthTone(r.finalWealth), '一生结束时的可支配净资产（不含自住房）'),
         bigMetric('峰值财富', U.money(r.peakWealth), 'gold', '曾经达到过的最高点'),
         bigMetric('健康', U.fixed(r.health, 1), V.scoreTone(r.health), '65 岁前平均'),
         bigMetric('幸福', U.fixed(r.happiness, 1), V.scoreTone(r.happiness, 70, 48), '一生平均'),
@@ -164,7 +170,7 @@
     /* ---------- 3. 时间轴 ---------- */
     const timelineCard = LS.ui.chartCard({
       title: '一生长条',
-      sub: '职业阶段色带 + 重大事件分布',
+      sub: '职业阶段色带 + 重要的事',
       minHeight: 130,
       onMount: (host) => {
         LS.charts.create('timeline', host, {
@@ -181,7 +187,7 @@
         const row = V.eventRow(e, {
           onClick: () => LS.ui.modal({
             title: (e.icon || '') + ' ' + e.title,
-            sub: e.age + ' 岁 · 发生概率 ' + (e.probability != null ? U.pct(e.probability, 2) : '—'),
+            sub: e.age + ' 岁 · 当时的可能 ' + (e.probability != null ? U.pct(e.probability, 2) : '—'),
             body: [
               h('div.lead', e.narrative || ''),
               h('div', { style: { height: 'var(--s-4)' } }),
@@ -193,8 +199,7 @@
               }) : null,
               h('div', { style: { height: 'var(--s-3)' } }),
               h('div.row.gap-2.wrap', [
-                V.whyButton('conditional_probability', '这个概率是怎么算出来的？'),
-                V.whyButton('probability_vs_outcome', '为什么概率不是结果？'),
+                V.whyButton('conditional_probability', '这个数字怎么来的？'),
               ]),
             ].filter(Boolean),
           }),
@@ -202,7 +207,7 @@
         return row;
       })
       : [h('div.muted', { style: { padding: 'var(--s-4)' } },
-        '这一生没有触发重大事件。平静本身就是一种结果 —— 在动荡世界里它的概率并不高。')]);
+        '这一生没有触发重大事件。能平安过完一生，本身就是一种运气。')]);
 
     /* ---------- 5. 概率复盘 ---------- */
     const rated = events.filter((e) => e.probability != null);
@@ -211,32 +216,32 @@
 
     const review = h('div.split-63', [
       LS.ui.card({
-        title: '概率复盘 · 最不可能发生的事',
-        sub: '概率越低，说明"这次的运气成分越大"',
+        title: '回头看看：那些小概率的事',
+        sub: '不是说运气好坏，只是单次人生本来就偶然',
         body: rarest.length
           ? [
             h('div', rarest.map((e) => h('div.review-row', [
               h('span.rr-ico', e.icon || '◆'),
               h('div.rr-body', [
                 h('div.rr-title', e.title),
-                h('div.rr-meta', e.age + ' 岁 · 概率仅 ' + U.pct(e.probability, 2)),
+                h('div.rr-meta', e.age + ' 岁 · 当时只有 ' + U.pct(e.probability, 2)),
               ]),
               h('div.rr-bar', LS.ui.progressBar(e.probability, { tone: 'bad', thin: true })),
             ]))),
             h('div', { style: { height: 'var(--s-3)' } }),
-            LS.ui.notice('注意：这一生发生了概率很低的事，不代表你"运气好"或"运气差"。它只是说明——单次结果不能用来评价决策质量。', 'warn'),
+            LS.ui.notice('别把单次结果当成评价自己的证据。发生了就是发生了，它只说明这一局比较特别。', 'warn'),
           ]
-          : [h('div.muted', '本次没有可复盘的概率事件。')],
+          : [h('div.muted', '这次没遇到什么小概率的事。')],
       }),
       LS.ui.card({
-        title: '几乎必然发生的事',
-        sub: '这些事件的概率接近 1，它们的出现几乎没有信息量',
+        title: '几乎一定会发生的事',
+        sub: '太常见了，反而没什么好说的',
         body: likely.length
           ? likely.map((e) => h('div.review-row', [
             h('span.rr-ico', e.icon || '◆'),
             h('div.rr-body', [
               h('div.rr-title', e.title),
-              h('div.rr-meta', e.age + ' 岁 · 概率 ' + U.pct(e.probability, 1)),
+              h('div.rr-meta', e.age + ' 岁 · 当时有 ' + U.pct(e.probability, 1) + ' 的可能'),
             ]),
             h('div.rr-bar', LS.ui.progressBar(e.probability, { tone: 'ok', thin: true })),
           ]))
@@ -269,16 +274,7 @@
       });
     }
 
-    /* ---------- 7. 知识卡 ---------- */
-    const concepts = LS.knowledge.relevant({ metrics: { bankruptcyRate: r.finalWealth < 0 ? 1 : 0 } });
-    const knowledge = LS.ui.card({
-      title: '这一生涉及的概率概念',
-      sub: '点开标题可以看到三层解释：直觉比喻 → 数学定义 → 简化解释',
-      body: h('div.grid.g-2', concepts.map((id) =>
-        LS.knowledge.card(id, { compact: true }))),
-    });
-
-    /* ---------- 8. 百分位（如果有同策略的批量结果） ---------- */
+    /* ---------- 7. 百分位（如果有同策略的批量结果） ---------- */
     const mc = LS.views.mcCache && LS.views.mcCache.key === strategyKey(card.strategy)
       ? LS.views.mcCache.result : null;
     let percentileCard = null;
@@ -298,8 +294,8 @@
           ]),
           h('div', { style: { height: 'var(--s-3)' } }),
           h('div.row.gap-2.wrap', [
-            LS.ui.button('看完整分布', { variant: 'ghost', size: 'sm', onClick: () => LS.router.go('/universe') }),
-            V.whyButton('percentile', '百分位到底是什么意思？'),
+            LS.ui.button('看看一万种活法', { variant: 'ghost', size: 'sm', onClick: () => LS.router.go('/universe') }),
+            V.whyButton('percentile', '百分位是什么？'),
           ]),
         ],
       });
@@ -308,7 +304,7 @@
         title: '你在平行宇宙中的位置',
         sub: '需要一个批量结果才能计算',
         body: [
-          LS.ui.notice('单次人生无法计算百分位 —— 百分位必须相对于一个总体才有意义。点下面的按钮，用完全相同的策略重演 10,000 次。', 'know'),
+          LS.ui.notice('一个人算不出百分位，得有一群人才行。想看看自己落在哪，用同样的活法重演一万次。', 'know'),
           h('div', { style: { marginTop: 'var(--s-3)' } }),
           LS.ui.button('用同样策略重演 10,000 次', {
             variant: 'primary',
@@ -321,18 +317,20 @@
     /* ---------- 组装 ---------- */
     return V.render({
       title: '人生报告',
-      sub: '第 3 步 / 共 5 步',
+      sub: '这一生',
       fate: { seed: card.worldSeed, locked: false },
     }, [
       V.head({
-        kicker: '第 3 步 / 共 5 步',
+        kicker: '回头看',
         title: '这一生到底发生了什么',
-        sub: '先看结论，再看结构，最后看方法。所有数字都来自这次模拟的真实记录，没有任何修饰。',
+        sub: '先看日子过成什么样，再回头看看那些岔路口。所有数字都来自这次模拟，没有修饰。',
         tight: true,
         actions: [
           LS.ui.button('重新设计', { variant: 'ghost', size: 'sm', onClick: () => LS.router.go('/create') }),
           LS.ui.button('再跑一次', { variant: 'ghost', size: 'sm', onClick: () => LS.router.go('/run', { seed: String(Math.floor(Math.random() * 900000) + 100000) }) }),
           LS.ui.button('去档案馆', { variant: 'ghost', size: 'sm', onClick: () => LS.router.go('/archive') }),
+          LS.ui.button('导出 JSON', { variant: 'ghost', size: 'sm', onClick: () => exportLifeJSON(card) }),
+          LS.ui.button('导出 CSV', { variant: 'ghost', size: 'sm', onClick: () => exportLifeCSV(card) }),
         ],
       }),
       hero,
@@ -343,7 +341,7 @@
       h('div', { style: { height: 'var(--s-5)' } }),
       LS.ui.card({
         title: '重大事件时间线',
-        sub: `共 ${events.length} 个重大事件 · 点击任意一条查看概率拆解`,
+        sub: `共 ${events.length} 个重要瞬间 · 点开看看当时发生了什么`,
         body: [eventList],
       }),
       h('div', { style: { height: 'var(--s-5)' } }),
@@ -352,8 +350,6 @@
       decisionCard,
       h('div', { style: { height: 'var(--s-5)' } }),
       percentileCard,
-      h('div', { style: { height: 'var(--s-5)' } }),
-      knowledge,
     ]);
   }
 
@@ -389,10 +385,10 @@
 
   function verdict(r) {
     const parts = [];
-    if (r.finalWealth < 0) parts.push('你的一生以负债收场——这并不是"失败"，而是说明这条路径的破产概率真实存在。');
-    else if (r.finalWealth > 3000) parts.push('你的财富结局位于分布的极右端，这通常需要运气与选择同时到位。');
-    else if (r.finalWealth > 800) parts.push('你的财富结局高于典型水平，属于分布的上半部分。');
-    else parts.push('你的财富结局接近典型水平，是分布的主体部分。');
+    if (r.finalWealth < 0) parts.push('这一生以负债收场。不是判你失败，只是说这条路上，破产的可能真的存在。');
+    else if (r.finalWealth > 3000) parts.push('你落在了很靠前的位置，这通常需要运气和选择同时到位。');
+    else if (r.finalWealth > 800) parts.push('比大多数人的日子宽裕一些，算是靠前的那一拨。');
+    else parts.push('和大多数人的日子差不多，是人群里最常见的那一种。');
 
     if (r.health >= 78) parts.push('健康维护得很好。');
     else if (r.health < 58) parts.push('健康是这一生明显的短板，它会通过寿命反过来压缩其他维度。');
@@ -402,6 +398,53 @@
 
     parts.push('下面把这一生拆开来看。');
     return parts.join('');
+  }
+
+  function downloadText(filename, text, mime) {
+    try {
+      const blob = new Blob([text], { type: mime || 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 500);
+    } catch (e) {
+      LS.ui.toast('导出失败：' + e.message, 'bad');
+    }
+  }
+
+  function exportLifeJSON(card) {
+    const payload = {
+      app: 'LifeSim',
+      exportedAt: new Date().toISOString(),
+      worldSeed: card.worldSeed,
+      character: card.character,
+      strategy: card.strategy,
+      result: card.result,
+      states: card.states,
+      events: card.events,
+      decisions: card.decisions,
+    };
+    downloadText('lifesim-' + card.id + '.json', JSON.stringify(payload, null, 2), 'application/json;charset=utf-8');
+    LS.ui.toast('已导出这一生的 JSON', 'fate');
+  }
+
+  function exportLifeCSV(card) {
+    const head = ['年龄', '净资产（万）', '健康', '幸福', '关系', '职业', '学历', '年收入（万）', '年支出（万）', '经济环境'];
+    const rows = (card.states || []).map((s) => [
+      s.age, s.wealth, s.health, s.happiness, s.relationship,
+      s.career, s.education, s.income, s.expense, s.economy,
+    ]);
+    const esc = (v) => {
+      const x = v == null ? '' : String(v);
+      return /[",\n]/.test(x) ? '"' + x.replace(/"/g, '""') + '"' : x;
+    };
+    const csv = '\uFEFF' + [head, ...rows].map((r) => r.map(esc).join(',')).join('\n');
+    downloadText('lifesim-' + card.id + '.csv', csv, 'text/csv;charset=utf-8');
+    LS.ui.toast('已导出逐年记录的 CSV', 'fate');
   }
 
   function strategyKey(s) {

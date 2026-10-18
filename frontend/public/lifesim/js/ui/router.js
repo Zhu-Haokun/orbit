@@ -7,13 +7,8 @@
  *   #/result                人生结果
  *   #/universe              平行宇宙
  *   #/compare               策略对比
- *   #/lab                   概率实验室
- *   #/lab/law               大数定律
- *   #/lab/bayes             贝叶斯
- *   #/lab/markov            马尔可夫
- *   #/lab/sensitivity       敏感性
  *   #/archive               人生档案
- *   #/codex                 知识图鉴
+ *   #/codex                 人生图鉴（事件 / 成就）
  *   #/settings              设置
  * ============================================================ */
 (function (global) {

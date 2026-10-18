@@ -12,63 +12,33 @@
   const { h } = LS.dom;
   const U = LS.util;
 
-  /* ---------- 每日一问（规格书 §7.4） ---------- */
-  const DAILY = [
-    {
-      q: '抛硬币连续出现 5 次正面，第 6 次出现反面的概率是多少？',
-      a: '仍然是 50%。硬币没有记忆——这就是「赌徒谬误」。独立事件的概率不会因为历史而改变。',
-      concept: 'independence',
-    },
-    {
-      q: '一种罕见病患病率 0.1%，检测准确率 99%。你检测阳性，真的患病概率是多少？',
-      a: '大约 9%，不是 99%。因为健康人太多，1% 的假阳性数量远超真阳性。这叫「基础比率谬误」。',
-      concept: 'bayes',
-    },
-    {
-      q: '某策略平均收益更高，是否一定应该选它？',
-      a: '不一定。平均值会被极少数极端样本抬高。要看中位数、P05 和破产概率——这就是本软件同时给出多个分位数的原因。',
-      concept: 'lognormal',
-    },
-    {
-      q: '为什么观察了 1000 次还不够，要观察 10000 次？',
-      a: '估计误差按 1/√n 缩小：样本量翻 100 倍，精度才提高 10 倍。所以稀有事件需要极大的样本量才能被看见。',
-      concept: 'monte_carlo',
-    },
-    {
-      q: '「今年业绩最差的团队明年会变好」一定是因为他们努力了吗？',
-      a: '不一定。这是均值回归：极端值本身难以持续。评估任何干预效果时都要警惕这个统计假象。',
-      concept: 'regression_to_mean',
-    },
-    {
-      q: '创业成功率只有 5%，为什么还有人前赴后继？',
-      a: '因为收益是厚尾的：95% 归零，但那 5% 可能回报 100 倍。决策取决于期望效用，而不只是成功率。',
-      concept: 'heavy_tail',
-    },
-    {
-      q: '同时买 10 只不同的股票，风险就一定更低吗？',
-      a: '只有在它们不完全相关时才行。如果遇到系统性危机，相关性会一起飙到接近 1——分散化在关键时刻会失效。',
-      concept: 'correlation',
-    },
-  ];
-
-  function dailyIndex() {
-    const d = new Date();
-    const doy = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86400000);
-    return doy % DAILY.length;
+  /* ---------- 随机来一局 ---------- */
+  function randomLife() {
+    const d = LS.views.create.randomDraft('fast');
+    const st = LS.store.state;
+    st.character = d.character;
+    st.strategy = d.strategy;
+    st.worldPreset = d.worldPreset;
+    st.worldOverrides = { ...d.worldOverrides };
+    st.lastSeed = d.worldSeed;
+    st.lastMode = d.mode;
+    st.lastLockWorldSeed = false;
+    LS.store.saveNow();
+    LS.ui.toast('角色、天赋、策略和世界都随机好了', 'fate', 2600);
+    LS.router.go('/run?seed=' + d.worldSeed);
   }
 
   /* ---------- 首页 ---------- */
   function renderHome() {
     const st = LS.store.state;
     const stats = st.stats || {};
-    const daily = DAILY[dailyIndex()];
 
     /* --- Hero --- */
     const particles = h('canvas', { id: 'home-particles' });
     const hero = h('section.home-hero', [
       particles,
       h('div.hero-inner', [
-        h('div.eyebrow', '概率论 · 蒙特卡洛 · 平行人生'),
+        h('div.eyebrow', '一个关于选择与运气的人生沙盒'),
         h('h1.hero-title', [
           '如果人生可以重演',
           h('span.hero-num-inline', ' 10,000 '),
@@ -77,10 +47,10 @@
           '你会看到什么？',
         ]),
         h('p.hero-lead', [
-          '这里没有"正确答案"。你设定性格、策略与世界环境，',
+          '这里没有标准答案。你设定性格、策略和环境，',
           h('b', 'LifeSim'),
-          ' 用蒙特卡洛方法把你的选择重演成千上万次，',
-          '然后如实告诉你：均值在哪里，风险藏在哪里，概率与运气各占多少。',
+          ' 把不同选择下的人生各演一遍，',
+          '看看它们会把日子带到哪里。偶尔，运气也会插一脚。',
         ]),
         h('div.hero-actions', [
           LS.ui.button('生成我的一生', {
@@ -94,37 +64,37 @@
               else LS.router.go('/create');
             },
           }),
-          h('span.hero-hint', '≈ 3 分钟，无需注册，全部离线运行'),
+          h('span.hero-hint', '全部离线运行'),
         ]),
       ]),
       h('div.hero-facts', heroFacts()),
     ]);
 
-    /* --- 三种玩法（规格书 §7.2） --- */
+    /* --- 三种玩法 --- */
     const modes = h('section', [
-      V.section('选择一种玩法', '三种精度，对应三种学习目标'),
+      V.section('想怎么玩？', '三档节奏，从随手一局到认真推演'),
       h('div.mode-grid', [
         LS.ui.modeCard({
-          icon: '⚡', title: '极速一生',
-          desc: '一次完整的 18 → 终老模拟。逐年推进，看到每一次随机事件的概率拆解。',
-          tag: '约 5 秒 · 1 条人生',
-          hint: '想先感受一下？从这里开始 →',
+          icon: 'bolt', title: '极速一生',
+          desc: '几分钟看完一辈子。适合先感受一下，看看命运会把你带到哪里。',
+          tag: '最快上手',
+          hint: '想先试试？从这里开始 →',
           glow: 'rgba(124,92,255,0.26)', line: 'rgba(167,139,250,0.5)',
           onClick: () => LS.router.go('/create?mode=fast'),
         }),
         LS.ui.modeCard({
-          icon: '🎯', title: '关键人生',
-          desc: '在人生岔路口由你亲自选择。同样的命运种子，不同的决策路径。',
-          tag: '约 3 分钟 · 可交互',
-          hint: '想体会"选择的力量"？',
+          icon: 'target', title: '关键人生',
+          desc: '在几个岔路口停一下，由你来做决定。其余的日子交给性格和习惯。',
+          tag: '可交互',
+          hint: '想看看“如果我当时……”？',
           glow: 'rgba(245,200,96,0.22)', line: 'rgba(245,200,96,0.5)',
           onClick: () => LS.router.go('/create?mode=key'),
         }),
         LS.ui.modeCard({
-          icon: '🌌', title: '平行宇宙',
-          desc: '把你的人生重演 1,000 到 100,000 次，得到完整的财富分布、尾部风险与相关结构。',
-          tag: '约 10 秒 · 1 万条人生',
-          hint: '想看真正的概率？',
+          icon: 'orbit', title: '平行宇宙',
+          desc: '把同一种活法演上一万遍。有人安稳，有人大起大落，看看你落在哪。',
+          tag: '一万种可能',
+          hint: '想看看“另一种可能”？',
           glow: 'rgba(45,212,191,0.22)', line: 'rgba(45,212,191,0.5)',
           onClick: () => LS.router.go('/universe'),
         }),
@@ -133,17 +103,14 @@
 
     /* --- 数据条 --- */
     const totalSim = stats.totalSimulated || 0;
-    const codexTotal = LS.knowledge.list().length;
-    const codexDone = Object.keys(st.codexSeen || {}).length;
     const ach = LS.meta.progress();
     const strip = h('section', [
-      V.section('你的实验室', '所有数据都保存在这台设备上（localStorage），不上传任何内容'),
+      V.section('你的沙盒', '所有数据只保存在这台设备上（localStorage），不上传任何内容'),
       h('div.daily-strip', [
-        dailyCard(daily),
+        quickStartCard(),
         h('div.stat-mini-grid', [
           miniStat('🎲', U.int(totalSim), '累计模拟次数'),
           miniStat('🗄️', U.int(st.lives.length), '收藏的人生'),
-          miniStat('📖', codexDone + ' / ' + codexTotal, '概率概念'),
           miniStat('🏆', ach.done + ' / ' + ach.total, '已解锁成就'),
         ]),
       ]),
@@ -166,23 +133,22 @@
       ]);
     }
 
-    /* --- 黄金路径指引（规格书 §41） --- */
+    /* --- 上手路径 --- */
     const path = h('section', [
-      V.section('第一次来？按这条路线走', '大约 3 分钟，能理解这个软件的全部核心'),
+      V.section('想先试试？', '随便走一遍，不用先看说明'),
       h('div.card.roomy', [
         h('div.golden-path', [
-          step(1, '设计一个角色', '调 6 个滑块，看每条策略如何改变概率', '/create', 'primary'),
-          step(2, '看完这一生', '逐年推进，点开任意事件看概率拆解', '/run', 'ghost'),
-          step(3, '重演一万次', '得到分布、分位数与尾部风险', '/universe', 'ghost'),
-          step(4, '对比两个未来', '锁定命运种子，只改变选择', '/compare', 'ghost'),
-          step(5, '去实验室', '大数定律 / 贝叶斯 / 马尔可夫 / 敏感性', '/lab', 'ghost'),
+          step(1, '捏一个自己', '调几个滑块：你更冒险，还是更求稳？', '/create', 'primary'),
+          step(2, '看完这一生', '逐年往下走，遇到岔路就停一下', '/run', 'ghost'),
+          step(3, '演一万遍', '同样的活法，一万种结果', '/universe', 'ghost'),
+          step(4, '换一个选择', '只改一个地方，看看人生会差多少', '/compare', 'ghost'),
         ]),
       ]),
     ]);
 
     const page = V.render({
       title: '开始',
-      sub: '概率 · 平行人生',
+      sub: '选择 · 运气 · 平行人生',
       fate: null,
     }, [hero, modes, strip, recent, path].filter(Boolean));
 
@@ -205,25 +171,17 @@
   }
 
   /**
-   * Hero 下方的四个数据点。
-   *
-   * 这几个数字刻意**从模型里取**，不写死：
-   * 之前写死过「16 种随机事件模型」，而引擎里实际有 17 个 ——
-   * 页面上就留下了一个永远不会自愈的错误说法。
-   * test_ui_render.js 里有一条断言专门盯着这件事。
+   * Hero 下方的数据点。数字从模型里取，不写死。
    */
   function heroFacts() {
     const C = LS.config;
     const events = (LS.events && LS.events.EVENTS) ? LS.events.EVENTS.length : 0;
-    const dists = (LS.distributions && LS.distributions.list)
-      ? LS.distributions.list().length : 0;
     const dims = (C && C.STRATEGY_DIMS) ? C.STRATEGY_DIMS.length : 0;
     return [
-      // 实测（Edge/V8，含预热）约 0.19 ms/条 → 100 万条约 3 分钟
-      fact('1,000,000', '次重演约 3 分钟', 'v-fate'),
-      fact(String(events), '种随机事件', 'v-know'),
-      fact(String(dists), '种概率分布', 'v-teal'),
-      fact(String(dims), '个策略维度', 'v-gold'),
+      fact('10,000', '次重演', 'v-fate'),
+      fact(String(events), '种人生事件', 'v-know'),
+      fact(String(dims), '个选择维度', 'v-teal'),
+      fact('3', '种玩法', 'v-gold'),
     ];
   }
 
@@ -237,28 +195,21 @@
     ]);
   }
 
-  function dailyCard(d) {
+  function quickStartCard() {
     return h('div.daily-card', [
       h('div.dc-head', [
-        h('span', '💡 今日一问'),
-        LS.ui.chip('每日更新', 'know'),
+        h('span', '🎲 命运发牌'),
+        LS.ui.chip('试试手气', 'fate'),
       ]),
-      h('div.dc-q', d.q),
-      h('div.dc-a', { id: 'daily-a', style: { display: 'none' } }, d.a),
-      h('div.row.gap-2', [
-        LS.ui.button('看解答', {
-          variant: 'ghost', size: 'sm',
-          onClick: (e) => {
-            const el = document.getElementById('daily-a');
-            const on = el.style.display === 'none';
-            el.style.display = on ? 'block' : 'none';
-            e.target.textContent = on ? '收起解答' : '看解答';
-            if (on) LS.store.seeCodex('concept:' + d.concept);
-          },
+      h('div.dc-q', '不知道从哪开始？让命运随便发一手牌，看看你能活成什么样。'),
+      h('div.row.gap-2.wrap.dc-actions', [
+        LS.ui.button('随机来一局', {
+          variant: 'primary', size: 'sm',
+          onClick: randomLife,
         }),
-        LS.ui.button('相关概念', {
+        LS.ui.button('先捏一个', {
           variant: 'ghost', size: 'sm',
-          onClick: () => LS.knowledge.explain(d.concept),
+          onClick: () => LS.router.go('/create'),
         }),
       ]),
     ]);

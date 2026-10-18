@@ -121,12 +121,20 @@ body.immersive .brand { justify-content: center; }
   display: flex;
   align-items: center;
   gap: var(--s-3);
+  width: 100%;
   padding: var(--s-1) var(--s-2) var(--s-5);
   margin-bottom: var(--s-3);
+  border: 0;
   border-bottom: 1px solid var(--line);
+  background: none;
+  text-align: left;
+  font: inherit;
   text-decoration: none;
   color: inherit;
+  cursor: pointer;
 }
+.brand:hover .brand-mark { filter: brightness(1.08); }
+.brand:focus-visible { outline: 2px solid var(--c-fate); outline-offset: 2px; }
 
 .brand-mark {
   width: 36px;
@@ -142,19 +150,32 @@ body.immersive .brand { justify-content: center; }
   box-shadow: var(--glow-brand);
 }
 
-.brand-text { transition: opacity var(--dur) var(--ease); min-width: 0; }
+.brand-text {
+  transition: opacity var(--dur) var(--ease);
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+}
 .brand-name {
   font-size: 14.5px;
   font-weight: 700;
   letter-spacing: 0.2px;
+  line-height: 1.35;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .brand-sub {
-  font-size: 10px;
-  color: var(--t-4);
-  letter-spacing: 0.7px;
+  margin-top: 2px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--t-3);
+  letter-spacing: 0.2px;
+  line-height: 1.5;
+  font-family: var(--font-sans);
   white-space: nowrap;
-  font-family: var(--font-mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ---------------- 导航 ---------------- */
@@ -171,11 +192,10 @@ body.immersive .brand { justify-content: center; }
 .nav-group { display: flex; flex-direction: column; gap: 2px; }
 
 .nav-label {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 1.5px;
-  color: var(--t-4);
-  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: var(--t-3);
   padding: var(--s-4) var(--s-3) var(--s-2);
   transition: opacity var(--dur) var(--ease);
 }
@@ -203,11 +223,19 @@ body.immersive .brand { justify-content: center; }
 .nav-ico {
   flex: 0 0 20px;
   width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
   text-align: center;
   font-size: 14px;
   line-height: 1;
-  opacity: 0.92;
+  opacity: 1;
+  color: var(--t-2);
+  transition: color var(--dur-fast) var(--ease), opacity var(--dur-fast) var(--ease);
 }
+.nav-ico .ui-icon { display: block; width: 19px; height: 19px; stroke-width: 1.8; }
+.nav-link:hover .nav-ico { color: var(--t-1); opacity: 1; }
+.nav-link.on .nav-ico { color: var(--c-fate); opacity: 1; }
 
 .nav-text {
   white-space: nowrap;
@@ -372,12 +400,38 @@ body.immersive .brand { justify-content: center; }
 .tb-icon { display: none; }
 .tb-burger { display: none; }
 
-/* 桌面端只有折叠状态（沉浸模式）才需要汉堡按钮。
- * .btn-icon 在 components.css 里是 display:grid，且加载顺序在 base.css 之后；
- * 不提高选择器权重的话，汉堡会在桌面常显，而 body.nav-open 在 >1080px
- * 没有对应样式 —— 用户点了没有任何反应。 */
+/* 桌面端的“收起导航”状态（与沉浸模式独立）。
+ * 汉堡按钮始终可见：展开时显示 «，收起后显示 ☰。
+ * nav-collapsed 只在 >1080px 生效，窄屏仍然走抽屉。 */
 @media (min-width: 1081px) {
-  body:not(.immersive) .tb-burger { display: none; }
+  /* 桌面端收起/展开由侧栏品牌图标负责，汉堡只在移动端出现。 */
+  .topbar .tb-burger { display: none; }
+
+  body.nav-collapsed .sidenav {
+    width: var(--nav-w-collapsed);
+    flex-basis: var(--nav-w-collapsed);
+    padding-left: var(--s-2);
+    padding-right: var(--s-2);
+  }
+  body.nav-collapsed .sidenav .nav-text,
+  body.nav-collapsed .sidenav .nav-label,
+  body.nav-collapsed .sidenav .brand-text,
+  body.nav-collapsed .sidenav .nav-badge,
+  body.nav-collapsed .sidenav .nav-arrow,
+  body.nav-collapsed .sidenav .nav-sub,
+  body.nav-collapsed .sidenav .nav-footer .nav-text {
+    opacity: 0;
+    pointer-events: none;
+    width: 0;
+    overflow: hidden;
+  }
+  body.nav-collapsed .sidenav .nav-link {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+  }
+  body.nav-collapsed .sidenav .nav-progress { display: none; }
+  body.nav-collapsed .brand { justify-content: center; }
 }
 
 .viewport {
@@ -435,10 +489,10 @@ h4 {
 }
 
 .eyebrow {
-  font-size: var(--f-xs);
-  font-weight: 700;
-  letter-spacing: 1.6px;
-  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.45px;
+  line-height: 1.4;
   color: var(--c-fate);
 }
 

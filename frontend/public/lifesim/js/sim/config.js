@@ -50,15 +50,20 @@
   };
 
   /* ------------------------------------------------------------
-   * 基准投资参数（长期年化）
+   * 基准投资参数（长期年化，按“今天的钱”计的实际收益）
+   *
+   * 标定依据：中国一年期存款/货币基金长期实际收益约 0~1%，
+   * 稳健的股债混合约 2.5%~3.5%，长期权益约 5%~6%（扣费后）。
+   * 旧值（8.5% 高风险、4.8% 稳健）会让复利在 40 年里把普通人推到
+   * 千万级，明显高于居民财富调查的中位数。
    * ---------------------------------------------------------- */
   const INVEST = {
     /** 现金 / 债券：低收益低波动 */
-    lowRisk: { mu: 0.021, sigma: 0.012 },
+    lowRisk: { mu: 0.012, sigma: 0.010 },
     /** 稳健配置：股债混合 */
-    midRisk: { mu: 0.048, sigma: 0.095 },
+    midRisk: { mu: 0.030, sigma: 0.080 },
     /** 高风险资产：权益 / 创业股权 */
-    highRisk: { mu: 0.085, sigma: 0.235 },
+    highRisk: { mu: 0.055, sigma: 0.300 },
     /**
      * investmentRisk ∈ [0,1] 在这三档之间插值：
      *   0 -> lowRisk，0.5 -> midRisk，1 -> highRisk
@@ -68,6 +73,26 @@
     /** 投资收益率下限（单年最多亏 85%，避免出现荒谬数值） */
     floor: -0.85,
     ceiling: 2.5,
+  };
+
+  /* ------------------------------------------------------------
+   * 税与社保（简化）
+   *
+   * 不追求逐项复刻个税/五险一金，只按“年收入 → 有效负担率”给一条
+   * 单调递增的曲线。数量级参考：
+   *   - 个税起征点 6 万/年，综合所得 3%~45% 超额累进；
+   *   - 个人社保 + 公积金约占工资 10%~20%；
+   * 低收入段几乎不交，中高收入段合计约 10%~25%。
+   * ---------------------------------------------------------- */
+  const TAX = {
+    brackets: [
+      { upTo: 6, rate: 0.02 },
+      { upTo: 12, rate: 0.08 },
+      { upTo: 24, rate: 0.12 },
+      { upTo: 48, rate: 0.17 },
+      { upTo: 96, rate: 0.23 },
+      { upTo: Infinity, rate: 0.28 },
+    ],
   };
 
   /* ------------------------------------------------------------
@@ -88,16 +113,25 @@
     retired: '🏖',
   };
 
-  /** 年收入（万元）用对数正态：中位数 median，对数标准差 sigma */
+  /**
+   * 年收入（万元）用对数正态：中位数 median，对数标准差 sigma。
+   *
+   * 标定依据（2023 年）：
+   *   - 全国居民人均可支配收入 3.92 万，中位数 3.30 万；
+   *   - 城镇居民人均可支配收入 5.18 万，中位数 4.71 万；
+   *   - 城镇非私营单位年平均工资约 12 万，私营单位约 6.8 万。
+   * 模型里的是“个人税前工资”，比人均可支配收入高一些；
+   * 下面的中位数对应城镇就业者的大致分布，不再用旧版的 22/48 万。
+   */
   const INCOME = {
     student:       { median: 0.6, sigma: 0.55 },
-    junior:        { median: 8.5, sigma: 0.30 },
-    senior:        { median: 22,  sigma: 0.34 },
-    manager:       { median: 48,  sigma: 0.38 },
-    unemployed:    { median: 2.2, sigma: 0.45 },
-    freelance:     { median: 12,  sigma: 0.62 },
-    entrepreneur:  { median: 6,   sigma: 0.95 }, // 创业期收入波动极大
-    retired:       { median: 4.5, sigma: 0.22 },
+    junior:        { median: 6.5, sigma: 0.30 },
+    senior:        { median: 13.0, sigma: 0.34 },
+    manager:       { median: 26.0, sigma: 0.38 },
+    unemployed:    { median: 1.5, sigma: 0.45 },
+    freelance:     { median: 8.0, sigma: 0.62 },
+    entrepreneur:  { median: 5.0, sigma: 0.95 }, // 创业期收入波动极大
+    retired:       { median: 3.8, sigma: 0.22 },
   };
 
   /** 各职业的年度"职业资本"增长（能力→晋升的燃料） */
@@ -210,15 +244,20 @@
    * ---------------------------------------------------------- */
   const LIFESPAN = {
     minAge: 18,
-    baseline: 82,          // 基准寿命中位数
-    gompertzB: 0.088,      // 年龄风险增长速率
+    baseline: 81,          // 基准寿命中位数（标定后约 81）
+    gompertzB: 0.0885,     // 年龄风险增长速率
     /** 健康对寿命的影响权重（越大，健康越好越长寿的效应越明显） */
     healthWeight: 0.90,
     /**
-     * Gompertz 基准风险。与 healthWeight 一起标定出中位寿命 ≈ 81 岁、
-     * 10% 分位 ≈ 63、90% 分位 ≈ 92（实测扫描结果）。
+     * Gompertz 基准风险。标定目标来自联合国《世界人口展望 2024》
+     * 中国 2023 年生命表（转引自财新何亚福文章）：
+     *   e0 = 77.95 岁；l(90) = 16,213/100,000（16.2%）；
+     *   l(100) = 427/100,000（0.43%）。
+     * 据此扫描后取 baselineHazard=0.00050、b=0.0885：
+     * 中位寿命约 80，均值约 78.4，90 岁以上约 16%，100 岁以上约 0.4%
+     * （加入 2026-10 的买房/父母生病/离婚/意外等事件后复核）。
      */
-    baselineHazard: 0.00030,
+    baselineHazard: 0.00050,
     absoluteMax: 105,
   };
 
@@ -398,7 +437,7 @@
 
   LS.config = {
     ECONOMY_STATES, ECONOMY_P, ECONOMY_EFFECT,
-    INVEST, CAREERS, CAREER_LABEL, CAREER_ICON, INCOME, CAREER_CAPITAL_GAIN,
+    INVEST, TAX, CAREERS, CAREER_LABEL, CAREER_ICON, INCOME, CAREER_CAPITAL_GAIN,
     EDUCATION, EXPENSE, HEALTH, RELATIONSHIP, HAPPINESS, LIFESPAN,
     DECISION, EVENT, PLAYBACK, WORLD_PRESETS, makeWorldConfig,
     STRATEGY_DIMS, STRATEGY_PRESETS, FAMILY, TRAITS,

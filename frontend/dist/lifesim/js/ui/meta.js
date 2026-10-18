@@ -56,10 +56,10 @@
         (c.mc && c.mc.summary.wealth.p05 < 0),
     },
     {
-      id: 'millionaire', icon: '💎', tier: 'silver',
-      name: '千万身家', desc: '有一条人生最终财富超过 1,000 万',
-      test: (c) => (c.run && c.run.result.finalWealth >= 1000) ||
-        (c.mc && c.mc.summary.wealth.max >= 1000),
+      id: 'millionaire', icon: '💎', tier: 'gold',
+      name: '三千万身家', desc: '有一条人生最终财富超过 3,000 万',
+      test: (c) => (c.run && c.run.result.finalWealth >= 3000) ||
+        (c.mc && c.mc.summary.wealth.max >= 3000),
     },
     {
       id: 'billionaire', icon: '👑', tier: 'gold',
@@ -69,13 +69,14 @@
     },
     {
       id: 'tail_reader', icon: '🔍', tier: 'bronze',
-      name: '尾部阅读者', desc: '打开过最差 5% 人群的画像',
+      name: '看见另一头', desc: '打开过最差 5% 的人生画像',
       test: (c) => c.kind === 'tail',
     },
     {
       id: 'startup_win', icon: '🚀', tier: 'gold',
       name: '赌赢了的那一次', desc: '有一条人生创业成功',
-      test: (c) => c.run && c.run.events && c.run.events.some((e) => e.id === 'startup_success'),
+      test: (c) => c.run && c.run.events && c.run.events.some((e) =>
+        e.id === 'startup' && e.outcome && e.outcome.flags && e.outcome.flags.startupSuccess),
     },
     {
       id: 'long_life', icon: '🐢', tier: 'silver',
@@ -98,49 +99,64 @@
     /* ---------- 方法 ---------- */
     {
       id: 'compare_first', icon: '⚖️', tier: 'bronze',
-      name: '对照实验者', desc: '完成第一次双策略对照',
+      name: '第一次对照', desc: '完成第一次两种活法的比较',
       test: (c) => c.kind === 'compare' && c.compare && c.compare.arms,
     },
     {
-      id: 'compare_three', icon: '🔬', tier: 'silver',
-      name: '变量控制', desc: '完成 3 次策略对照',
+      id: 'compare_three', icon: '🧭', tier: 'silver',
+      name: '多试几种活法', desc: '完成 3 次策略对照',
       test: (c) => c.state && (c.state.stats.compareRuns || 0) >= 3,
     },
     {
       id: 'seed_locked', icon: '🔒', tier: 'gold',
-      name: '锁定命运', desc: '在锁定随机种子的条件下对比两种选择',
+      name: '锁住运气', desc: '在锁定运气的条件下对比两种选择',
       test: (c) => c.kind === 'compare' && c.compare && c.compare.lockWorldSeed,
     },
     {
-      id: 'sensitivity', icon: '🎛️', tier: 'silver',
-      name: '找到那个杠杆', desc: '运行过一次参数敏感性热力图',
-      test: (c) => c.kind === 'sensitivity',
+      id: 'homeowner', icon: '🏠', tier: 'silver',
+      name: '有房了', desc: '完成一次买房',
+      test: (c) => c.run && c.run.events && c.run.events.some((e) => e.id === 'buy_house'),
     },
     {
-      id: 'bayes', icon: '🔄', tier: 'bronze',
-      name: '修正信念的人', desc: '在贝叶斯实验室完成一次先验更新',
-      test: (c) => c.kind === 'bayes',
+      id: 'promoted', icon: '📈', tier: 'bronze',
+      name: '往上走了一格', desc: '在职业上被提拔',
+      test: (c) => c.run && c.run.events && c.run.events.some((e) => e.id === 'promotion'),
     },
     {
-      id: 'markov_walk', icon: '⛓️', tier: 'bronze',
-      name: '走一遍马尔可夫链', desc: '在马尔可夫实验室观察到平稳分布',
-      test: (c) => c.kind === 'markov',
+      id: 'survivor', icon: '🩹', tier: 'silver',
+      name: '意外之后', desc: '经历过一次意外事故',
+      test: (c) => c.run && c.run.events && c.run.events.some((e) => e.id === 'accident'),
+    },
+    /* ---------- 人生彩蛋 ---------- */
+    {
+      id: 'old_friend', icon: '☕', tier: 'bronze',
+      name: '老友记', desc: '在人生里与老朋友重逢',
+      test: (c) => c.run && c.run.events && c.run.events.some((e) => e.id === 'old_friend'),
     },
     {
-      id: 'converge', icon: '📉', tier: 'silver',
-      name: '亲眼看见收敛', desc: '完整看过大数定律收敛过程',
-      test: (c) => c.kind === 'law',
-    },
-    /* ---------- 收藏 ---------- */
-    {
-      id: 'codex_10', icon: '📖', tier: 'bronze',
-      name: '好奇的读者', desc: '解锁 10 个概率概念',
-      test: (c) => c.state && Object.keys(c.state.codexSeen).length >= 10,
+      id: 'cat_person', icon: '🐈', tier: 'silver',
+      name: '猫奴', desc: '收养过一只流浪猫',
+      test: (c) => c.run && c.run.events && c.run.events.some((e) => e.id === 'stray_cat'),
     },
     {
-      id: 'codex_all', icon: '🏛', tier: 'gold',
-      name: '概率图鉴收藏家', desc: '解锁全部概率概念',
-      test: (c) => c.state && Object.keys(c.state.codexSeen).length >= LS.knowledge.list().length,
+      id: 'late_bloom', icon: '🌼', tier: 'gold',
+      name: '大器晚成', desc: '在 50 岁之后迎来事业转机',
+      test: (c) => c.run && c.run.events && c.run.events.some((e) => e.id === 'late_bloom'),
+    },
+    {
+      id: 'side_hustle', icon: '🌙', tier: 'bronze',
+      name: '斜杠青年', desc: '做过一份副业',
+      test: (c) => c.run && c.run.events && c.run.events.some((e) => e.id === 'side_hustle'),
+    },
+    {
+      id: 'plain_life', icon: '🍵', tier: 'silver',
+      name: '平安是福', desc: '活过 80 岁，最后没有负债',
+      test: (c) => c.run && c.run.result.lifespan >= 80 && c.run.result.finalWealth >= 0,
+    },
+    {
+      id: 'no_debt_retire', icon: '🧾', tier: 'silver',
+      name: '干干净净退休', desc: '退休时没有负债',
+      test: (c) => c.run && c.run.result.finalCareer === 'retired' && c.run.result.finalWealth >= 0,
     },
     {
       id: 'archivist', icon: '🗄️', tier: 'bronze',
@@ -151,11 +167,6 @@
       id: 'dark_mode', icon: '🌙', tier: 'bronze',
       name: '沉浸体验', desc: '开启过沉浸模式',
       test: (c) => c.kind === 'immersive',
-    },
-    {
-      id: 'dist_all', icon: '🧮', tier: 'silver',
-      name: '分布百科通读', desc: '查看过全部 9 种概率分布',
-      test: (c) => c.state && (c.state.stats.distributionsOpened || 0) >= 9,
     },
   ];
 

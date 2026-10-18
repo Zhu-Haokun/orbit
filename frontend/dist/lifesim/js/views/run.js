@@ -41,7 +41,7 @@
         },
         {
           id: 'study', label: '继续深造', tag: '延迟兑现',
-          desc: '晚几年进入职场，但学历会把整条收入分布向右推。',
+          desc: '晚几年进入职场，但学历会把起点抬高一些。',
           effect: (sim) => {
             sim.strategy.educationPreference = U.clamp01(sim.strategy.educationPreference + 0.22);
             sim.state.wealth -= 6;
@@ -92,61 +92,30 @@
       ],
     },
     {
-      id: 'allocation', age: 31, icon: '📈', title: '手上终于有了一笔钱',
-      q: '资产配置决定了你未来二十年的分布形状。',
+      id: 'home_choice', age: 30, icon: '🏠', title: '买下来，还是再租几年？',
+      q: '首付会拿走一大块现金，但每个月的房租也会变成自己的月供。',
+      when: (sim) => !sim.flags.houseOwned && (sim.state.wealth >= 12 || sim.character.familyResource === 'rich'),
       options: [
         {
-          id: 'safe', label: '绝大部分放稳健资产', tag: '窄分布',
-          desc: '下限抬高，上限压低。睡得着觉的那种选择。',
-          effect: (sim) => { sim.strategy.investmentRisk = U.clamp01(sim.strategy.investmentRisk - 0.22); sim.strategy.consumptionPreference = U.clamp01(sim.strategy.consumptionPreference - 0.06); },
-          effectText: '投资风险 −22% · 消费倾向 −6%',
-        },
-        {
-          id: 'balance', label: '均衡配置', tag: '默认解',
-          desc: '不试图战胜市场，只求不被单一风险吞掉。',
-          effect: (sim) => { sim.strategy.investmentRisk = 0.5; },
-          effectText: '投资风险 = 50%（回到中性）',
-        },
-        {
-          id: 'heavy', label: '重仓高风险资产', tag: '厚尾',
-          desc: '期望值更高，但方差陷阱也在等你：多数人会在中途下车。',
+          id: 'buy', label: '买下来', tag: '安定下来',
+          desc: '把大部分积蓄变成首付，换来一个自己的住处和更稳的关系。',
           effect: (sim) => {
-            sim.strategy.investmentRisk = U.clamp01(sim.strategy.investmentRisk + 0.24);
-            sim.strategy.consumptionPreference = U.clamp01(sim.strategy.consumptionPreference + 0.08);
+            const down = Math.max(6, Math.min(60, Math.round(sim.state.wealth * 0.45)));
+            sim.state.wealth -= down;
+            sim.flags.houseOwned = true;
+            sim.state.happiness = U.clamp(sim.state.happiness + 6, 0, 100);
+            sim.state.relationship = U.clamp(sim.state.relationship + 3, 0, 100);
           },
-          effectText: '投资风险 +24% · 消费倾向 +8%',
+          effectText: '首付约一半积蓄 · 有房 · 幸福 +6',
         },
-      ],
-    },
-    {
-      id: 'startup', age: 34, icon: '🚀', title: '有人拉你一起创业',
-      q: '成功率不高，但回报是厚尾的。这一次你打算押多少？',
-      options: [
         {
-          id: 'full', label: '辞职 all in', tag: '高方差',
-          desc: '放弃稳定的收入曲线，换取一次可能改变量级的机会。',
+          id: 'rent', label: '再租几年', tag: '保留现金',
+          desc: '不急着背上月供，把钱留在手里，也保留换城市、换工作的余地。',
           effect: (sim) => {
-            sim.strategy.careerRisk = U.clamp01(sim.strategy.careerRisk + 0.26);
-            sim.state.careerCapital += 6;
-            sim.state.wealth -= 12;
+            sim.state.happiness = U.clamp(sim.state.happiness - 1, 0, 100);
+            sim.strategy.investmentRisk = U.clamp01(sim.strategy.investmentRisk + 0.03);
           },
-          effectText: '职业风险 +26% · 启动投入 12 万',
-        },
-        {
-          id: 'part', label: '兼职试水', tag: '保留退路',
-          desc: '用一部分时间和资金验证想法，代价是两边都做不深。',
-          effect: (sim) => {
-            sim.strategy.careerRisk = U.clamp01(sim.strategy.careerRisk + 0.10);
-            sim.strategy.healthPriority = U.clamp01(sim.strategy.healthPriority - 0.05);
-            sim.state.wealth -= 5;
-          },
-          effectText: '职业风险 +10% · 健康投入 −5% · 投入 5 万',
-        },
-        {
-          id: 'no', label: '婉拒，专心本职', tag: '稳定路径',
-          desc: '不参与这次机会，把精力放在晋升上。',
-          effect: (sim) => { sim.strategy.careerRisk = U.clamp01(sim.strategy.careerRisk - 0.10); sim.state.careerCapital += 4; },
-          effectText: '职业风险 −10% · 职业资本 +4',
+          effectText: '保留现金 · 幸福 −1 · 投资风险 +3%',
         },
       ],
     },
@@ -172,7 +141,7 @@
         },
         {
           id: 'push', label: '这几年再拼一把', tag: '透支',
-          desc: '短期收入更高，但健康衰减加速，寿命分布左移。',
+          desc: '短期收入更高，但健康衰减加速，身体老得更快。',
           effect: (sim) => {
             sim.strategy.healthPriority = U.clamp01(sim.strategy.healthPriority - 0.24);
             sim.strategy.consumptionPreference = U.clamp01(sim.strategy.consumptionPreference + 0.05);
@@ -183,38 +152,31 @@
       ],
     },
     {
-      id: 'family', age: 42, icon: '🏡', title: '家庭与事业，只能先顾一头',
-      q: '这一题没有"都不选"的选项，只有"先选哪个"。',
+      id: 'parent_choice', age: 40, icon: '🏥', title: '父母住院了，谁来照顾？',
+      q: '时间和钱总要先拿出一样。没有标准答案，只有你更想保住什么。',
+      when: (sim) => !sim.flags.parentIllness,
       options: [
         {
-          id: 'family', label: '把时间给家人', tag: '关系优先',
-          desc: '关系与幸福显著提升，职业上升速度放缓。',
+          id: 'leave', label: '请长假，自己去照顾', tag: '关系优先',
+          desc: '花的时间多，钱花得少；工作和身体都会受影响。',
           effect: (sim) => {
-            sim.strategy.socialPreference = U.clamp01(sim.strategy.socialPreference + 0.22);
-            sim.strategy.careerRisk = U.clamp01(sim.strategy.careerRisk - 0.12);
-            sim.state.relationship = U.clamp(sim.state.relationship + 9, 0, 100);
+            sim.flags.parentIllness = true;
+            sim.state.wealth -= 5;
+            sim.state.health = U.clamp(sim.state.health - 2, 0, 100);
+            sim.state.relationship = U.clamp(sim.state.relationship + 8, 0, 100);
+            sim.state.happiness = U.clamp(sim.state.happiness + 2, 0, 100);
           },
-          effectText: '社交投入 +22% · 关系 +9',
+          effectText: '支出 5 万 · 健康 −2 · 关系 +8',
         },
         {
-          id: 'balance', label: '努力两边都顾好', tag: '高压力',
-          desc: '什么都不放弃的代价是健康与幸福被两边消耗。',
+          id: 'hire', label: '请护工，自己继续工作', tag: '现金流优先',
+          desc: '花更多的钱，把时间留给工作和自己的小家庭。',
           effect: (sim) => {
-            sim.strategy.healthPriority = U.clamp01(sim.strategy.healthPriority - 0.08);
-            sim.state.happiness = U.clamp(sim.state.happiness - 4, 0, 100);
+            sim.flags.parentIllness = true;
+            sim.state.wealth -= 15;
+            sim.state.relationship = U.clamp(sim.state.relationship + 2, 0, 100);
           },
-          effectText: '健康投入 −8% · 幸福 −4',
-        },
-        {
-          id: 'career', label: '这几年的机会不能错过', tag: '事业优先',
-          desc: '职业资本与收入乘数上升，关系值下降。',
-          effect: (sim) => {
-            sim.strategy.socialPreference = U.clamp01(sim.strategy.socialPreference - 0.16);
-            sim.strategy.careerRisk = U.clamp01(sim.strategy.careerRisk + 0.10);
-            sim.state.careerCapital += 6;
-            sim.state.relationship = U.clamp(sim.state.relationship - 8, 0, 100);
-          },
-          effectText: '社交投入 −16% · 职业资本 +6',
+          effectText: '支出 15 万 · 关系 +2',
         },
       ],
     },
@@ -239,11 +201,16 @@
     let character = st.character;
     let strategy = st.strategy;
     if (!character || !strategy) {
-      LS.ui.toast('还没有角色，已为你随机生成一个 —— 可以随时回到设计页调整', 'warn', 4200);
-      const d = LS.views.create.newDraft(mode);
+      LS.ui.toast('还没有角色，已为你随机生成一套 —— 可以随时回到设计页调整', 'warn', 4200);
+      const d = LS.views.create.randomDraft
+        ? LS.views.create.randomDraft(mode)
+        : LS.views.create.newDraft(mode);
       character = d.character; strategy = d.strategy;
       st.character = character; st.strategy = strategy;
       st.worldPreset = d.worldPreset;
+      st.worldOverrides = { ...d.worldOverrides };
+      st.lastSeed = d.worldSeed;
+      st.lastMode = d.mode;
       LS.store.saveNow();
     }
 
@@ -265,12 +232,16 @@
     let timer = null;
     let speed = query.speed ? parseFloat(query.speed) : 3;
     let lensOn = !!st.settings.lens;
-    let interactive = mode === 'key';
+    let interactive = mode === 'key' || !!st.settings.intervention;
     let finished = false;
     let pendingDecision = null;
     let decided = {};
+    if (interactive) {
+      for (const x of DECISIONS) if (x.age < sim.state.age) decided[x.id] = true;
+    }
 
     const elAge = h('div.hero-num.sm', String(sim.state.age));
+    const elModeKicker = h('div.eyebrow', (interactive ? '关键人生' : '极速一生') + ' · 进行中');
     const elStatusGrid = h('div.status-grid');
     const elEventStream = h('div.event-stream');
     const elLens = h('div.lens-panel');
@@ -278,6 +249,9 @@
     const elYearLabel = h('span', { style: { fontFamily: 'var(--font-mono)', fontSize: 'var(--f-lg)', fontWeight: '700' } }, '18 岁');
     const elChips = h('div.chips-row');
     const elDecision = h('div.decision-host');
+    const elScene = h('div.scene-host');
+    const elNext = h('div.next-choice');
+    let sceneStage = '';
     const elEconomy = h('div');
 
     const careerChipHost = h('div.row.gap-2.wrap');
@@ -308,8 +282,7 @@
           LS.ui.eventCard(ev),
           h('div', { style: { height: 'var(--s-3)' } }),
           h('div.row.gap-2.wrap', [
-            V.whyButton('conditional_probability', '为什么这个概率是这样算的？'),
-            V.whyButton('probability_vs_outcome', '概率 90% 也可能不发生？'),
+            V.whyButton('conditional_probability', '这个数字怎么算的？'),
           ]),
         ],
       });
@@ -370,10 +343,56 @@
 
     /** 找出当前应该出现的决策点（返回 null 表示没有） */
     function nextDecision() {
+      for (const x of DECISIONS) {
+        if (decided[x.id]) continue;
+        if (x.age < character.age) { decided[x.id] = true; continue; }
+        if (x.age > sim.state.age) continue;
+        if (x.when && !x.when(sim)) { decided[x.id] = true; continue; }
+        return x;
+      }
+      return null;
+    }
+
+    /** 下一个还没到的关键抉择（用于“跳过去”提示） */
+    function upcomingDecision() {
       return DECISIONS.find((x) =>
         !decided[x.id] &&
-        x.age >= character.age &&
-        x.age <= sim.state.age) || null;
+        x.age > sim.state.age &&
+        (!x.when || x.when(sim))) || null;
+    }
+
+    function jumpToDecision() {
+      if (pendingDecision) { LS.ui.toast('先做完眼前这个选择', 'warn'); return; }
+      pause();
+      let guard = 0;
+      while (!pendingDecision && !finished && sim.state.alive && guard++ < 120) {
+        advance();
+      }
+    }
+
+    function setIntervention(on) {
+      if (pendingDecision && !on) {
+        const d = pendingDecision;
+        choose(d, d.options[0]);
+        LS.ui.toast('已关闭决策干预，按默认选项继续', 'know');
+      }
+      if (on) {
+        // 只对“现在之后”的节点生效：已经过去的年龄不再补弹
+        for (const x of DECISIONS) if (x.age <= sim.state.age) decided[x.id] = true;
+      }
+      interactive = on;
+      st.settings.intervention = on;
+      st.lastMode = on ? 'key' : 'fast';
+      LS.store.saveNow();
+      elModeKicker.textContent = (on ? '关键人生' : '极速一生') + ' · 进行中';
+      btnIntervene.textContent = on ? '决策干预 · 开' : '决策干预';
+      btnIntervene.classList.toggle('primary', on);
+      btnIntervene.classList.toggle('ghost', !on);
+      btnJump.style.display = on ? '' : 'none';
+      refreshControls();
+      renderNextChoice();
+      if (on) LS.ui.toast('决策干预已开启：关键节点会停下来等你选', 'fate');
+      else LS.ui.toast('决策干预已关闭：会连续跑到结束', 'ghost');
     }
 
     /**
@@ -426,6 +445,8 @@
           ]),
         ]);
       }
+      renderScene();
+      renderNextChoice();
     }
 
     function metricCell(label, value, tone) {
@@ -433,6 +454,46 @@
         h('div.sc-label', label),
         h('div.sc-value' + (tone ? '.v-' + tone : ''), value),
       ]);
+    }
+
+    function renderScene() {
+      const on = LS.store.state.settings.showScenes !== false;
+      const stage = LS.ui.stageOfAge(sim.state.age);
+      if (!on) {
+        if (sceneStage !== 'off') { mount(elScene, []); sceneStage = 'off'; }
+        return;
+      }
+      if (stage === sceneStage) return;
+      sceneStage = stage;
+      mount(elScene, [LS.ui.lifeScene(stage)]);
+    }
+
+    function renderNextChoice() {
+      if (!interactive) {
+        mount(elNext, [
+          h('div.nc-kicker', '决策干预已关闭'),
+          h('div.nc-note', '从现在起到结束不会停下来。想在中途做选择，打开上方「决策干预」；只对之后的关键节点生效。'),
+        ]);
+        return;
+      }
+      const d = upcomingDecision();
+      if (!d) {
+        const logs = (sim.decisionLog || []).slice(-4).map((x) =>
+          h('div.nc-log', [h('span', x.age + ' 岁'), h('span', x.label)]));
+        mount(elNext, [
+          h('div.nc-kicker', '关键抉择'),
+          h('div.nc-note', '这一生的选择题已经走完，剩下的交给运气。'),
+          ...logs,
+        ]);
+        if (btnJump) { btnJump.disabled = true; btnJump.textContent = '没有更多抉择'; }
+        return;
+      }
+      mount(elNext, [
+        h('div.nc-kicker', '下一个关键抉择'),
+        h('div.nc-title', `${d.age} 岁 · ${d.title}`),
+        LS.ui.button('现在就跳过去', { variant: 'ghost', size: 'sm', onClick: jumpToDecision }),
+      ]);
+      if (btnJump) { btnJump.disabled = false; btnJump.textContent = '跳到下一个抉择'; }
     }
 
     /* ---- 概率透视（规格书 §9.5） ---- */
@@ -451,7 +512,7 @@
       const top = rows.slice(0, 6);
       mount(elLens, [
         h('div.lens-head', [
-          h('span', '🔎 概率透视 · 本年度候选事件'),
+          h('span', '🔎 这一年可能发生的事'),
           LS.knowledge.hint('conditional_probability'),
         ]),
         ...top.map((r) => h('div.lens-row', [
@@ -465,6 +526,7 @@
     /* ---- 决策卡 ---- */
     function showDecision(d) {
       pendingDecision = d;
+      pause();
       mount(elDecision, [
         h('div.decision-card', [
           h('div.de-head', [
@@ -475,15 +537,18 @@
             ]),
             LS.ui.chip(d.age + ' 岁 · 岔路口', 'fate'),
           ]),
-          h('div.choice-grid', d.options.map((o) =>
+          h('div.choice-grid' + (d.options.length === 2 ? '.cols-2' : ''), d.options.map((o, i) =>
             h('button.choice-card', {
               type: 'button',
               onclick: () => choose(d, o),
             }, [
+              h('div.cc-index', String(i + 1).padStart(2, '0')),
               h('div.cc-top', [h('span.cc-label', o.label), LS.ui.chip(o.tag, 'ghost')]),
               h('div.cc-desc', o.desc),
               h('div.cc-effect', o.effectText),
+              h('div.cc-go', [h('span', '选择这条'), h('span', '→')]),
             ]))),
+          h('div.decision-note', '选择会立刻改变接下来的日子，不能撤回。想清楚再点。'),
         ]),
       ]);
       elDecision.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -500,7 +565,12 @@
       LS.ui.toast(`你选择了「${o.label}」：${o.effectText}`, 'fate', 3600);
       postDecisionRow(d, o);
       LS.store.seeCodex('concept:decision_theory');
-      if (playing) schedule();
+      // 选完不再等“开始推进”，直接继续推演
+      if (!finished) {
+        playing = true;
+        refreshControls();
+        schedule();
+      }
     }
 
     function decide(d, o) {
@@ -565,9 +635,15 @@
     }
 
     const btnPlay = LS.ui.button('▶ 开始推进', { variant: 'primary', onClick: () => (playing ? pause() : play()) });
-    const btnStep = LS.ui.button('单步一年', { variant: 'ghost', onClick: step1 });
+    const btnJump = LS.ui.button('跳到下一个抉择', { variant: 'ghost', onClick: jumpToDecision });
+    btnJump.style.display = interactive ? '' : 'none';
+    const btnIntervene = LS.ui.button('决策干预', {
+      variant: interactive ? 'primary' : 'ghost',
+      onClick: () => setIntervention(!interactive),
+    });
+    if (interactive) { btnIntervene.textContent = '决策干预 · 开'; btnIntervene.classList.add('primary'); btnIntervene.classList.remove('ghost'); }
     const btnEnd = LS.ui.button('直接看到结局', { variant: 'ghost', onClick: runToEnd });
-    const btnLens = LS.ui.button('概率透视', {
+    const btnLens = LS.ui.button('看细节', {
       variant: 'ghost',
       onClick: () => {
         lensOn = !lensOn;
@@ -581,7 +657,7 @@
     if (lensOn) { btnLens.classList.add('primary'); btnLens.classList.remove('ghost'); }
 
     function refreshControls() {
-      mount(btnPlay, [h('span', playing ? '⏸ 暂停' : '▶ 开始推进')]);
+      mount(btnPlay, [h('span', playing ? '⏸ 暂停' : (interactive ? '▶ 开始推进' : '▶ 自动跑完'))]);
       btnPlay.classList.toggle('primary', !playing);
       btnPlay.classList.toggle('ghost', playing);
     }
@@ -655,7 +731,7 @@
       h('div.card.roomy.status-card', [
         h('div.row.between', [
           h('div', [
-            h('div.eyebrow', `${mode === 'key' ? '关键人生' : '极速一生'} · 进行中`),
+            elModeKicker,
             h('div.row.gap-2', [
               elAge,
               h('span', { style: { fontSize: 'var(--f-lg)', color: 'var(--t-3)', alignSelf: 'flex-end', paddingBottom: '8px' } }, '岁'),
@@ -669,7 +745,7 @@
         elProgress,
         careerChipHost,
         elStatusGrid,
-        h('div.control-bar', [btnPlay, btnStep, btnEnd, btnLens]),
+        h('div.control-bar', [btnPlay, btnJump, btnIntervene, btnEnd, btnLens].filter(Boolean)),
         h('div.speed-row', SPEEDS.map((sp) =>
           h('button.speed-btn' + (speed === sp.value ? '.on' : ''), {
             type: 'button',
@@ -680,6 +756,7 @@
               if (playing) schedule();
             },
           }, sp.label))),
+        elNext,
       ]),
 
       h('div', { style: { marginTop: 'var(--s-2)' } }, elEconomy),
@@ -704,13 +781,13 @@
         sub: '可重放的完整记录',
         body: [
           h('div.def-list', [
-            V.defRow('世界种子', '#' + worldSeed),
-            V.defRow('锁定种子', lockWorldSeed ? '是（所有重演共享同一经济曲线）' : '否'),
+            V.defRow('这次的世界编号', '#' + worldSeed),
+            V.defRow('锁住运气', lockWorldSeed ? '是（每次都遇到同一串事）' : '否'),
             V.defRow('策略', LS.character.describeStrategy(sim.strategy)),
             V.defRow('模式', mode === 'key' ? '关键人生' : '极速一生'),
           ]),
           h('div.row.gap-2', { style: { marginTop: 'var(--s-3)' } }, [
-            LS.ui.button('复制种子链接', {
+            LS.ui.button('复制这次的世界链接', {
               variant: 'ghost', size: 'sm',
               onClick: () => {
                 const url = location.origin + location.pathname +
@@ -728,11 +805,12 @@
     ]);
 
     const main = h('div.run-main', [
+      elScene,
       h('div.card.roomy', [
         h('div.row.between', [
           h('div', [
             h('div.card-title', '人生日志'),
-            h('div.card-sub', '每一条都记录了发生时的概率 —— 点开可以看到完整拆解'),
+            h('div.card-sub', '每一条都可能发生 —— 点开看看当时的样子'),
           ]),
           elChips,
         ]),
@@ -743,16 +821,14 @@
 
     const page = V.render({
       title: '运行这一生',
-      sub: lockWorldSeed ? '命运已锁定 · 只有选择会改变' : '逐年推进',
+      sub: lockWorldSeed ? '锁住运气 · 只有选择会改变' : '一年一年往下走',
       fate: { seed: worldSeed, locked: lockWorldSeed },
     }, [
       h('div.run-head', [
         V.head({
-          kicker: '第 2 步 / 共 5 步',
+          kicker: '过日子',
           title: '看着这一生一年一年走过去',
-          sub: interactive
-            ? '关键人生模式：每个岔路口会暂停等你决定。你的选择会即时改变之后所有年份的行为倾向。'
-            : '极速一生模式：全部由策略和概率自动决定。想看概率公式时，打开右上角的「概率透视」。',
+          sub: '一年一年往下走。打开「决策干预」，关键节点会停下来等你选；不打开就连续跑到结束。',
           tight: true,
           actions: [
             LS.ui.button('重新设计', { variant: 'ghost', size: 'sm', onClick: () => LS.router.go('/create') }),
@@ -791,7 +867,7 @@
       const tag = (e.target && e.target.tagName) || '';
       if (/INPUT|TEXTAREA|SELECT/.test(tag)) return;
       if (e.code === 'Space') { e.preventDefault(); playing ? pause() : play(); }
-      else if (e.key === 'ArrowRight') { e.preventDefault(); step1(); }
+      else if (e.key === 'ArrowRight') { e.preventDefault(); if (interactive) jumpToDecision(); else step1(); }
     };
     document.addEventListener('keydown', onKey);
     const prevCleanup = LS.views._cleanup;

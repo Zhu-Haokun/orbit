@@ -36,6 +36,17 @@
     return info;
   }
 
+  /**
+   * 简化税负：工资收入按“年收入 → 有效负担率”的单调曲线扣税，
+   * 养老金、失业补助、学生收入不扣。标定依据见 config.TAX。
+   */
+  function effectiveTaxRate(income) {
+    const brackets = C.TAX && C.TAX.brackets;
+    if (!brackets || !brackets.length) return 0;
+    for (const b of brackets) if (income <= b.upTo) return b.rate;
+    return brackets[brackets.length - 1].rate;
+  }
+
   /** 职业层级 0..1，用于"事业成就"维度与晋升判定 */
   const CAREER_TIER = {
     student: 0.10, unemployed: 0.05, retired: 0.30,
@@ -94,6 +105,9 @@
         gotFirstJob: false, graduated: false, married: false, hasChild: false,
         retired: false, startupSuccess: false, startupFailed: false,
         houseOwned: false, unemployedNow: false,
+        hasPet: false, lateBloom: false, hasSideHustle: false,
+        childSchool: false, parentIllness: false, divorced: false,
+        hadAccident: false, scammed: false, burnout: false,
       };
       this.startupFailures = 0;
       this.startupAttempts = 0;
@@ -104,6 +118,7 @@
       this.wealthHistory = [];
       this.states = [];
       this.events = [];
+      this.deathCause = null;
       this.chips = [];
       /* 终身累计量。
          健康用"前半生（至 65 岁）平均"而不是"一生平均"：
@@ -261,15 +276,21 @@
       const dead = this._deathCheck(rngA);
       if (dead) {
         s.alive = false;
+        const cause = dead.cause || { label: '身体原因', note: '没有留下更多解释' };
+        this.deathCause = cause;
         if (!this.light) {
           this.events.push({
             id: 'death', category: 'lifecycle', title: '生命终点', icon: '🕯',
             major: true, probability: null, base: null, factors: [],
             randomDraw: dead.p, distribution: null, age: s.age,
-            narrative: `你在 ${s.age} 岁离世。`,
+            narrative: `你在 ${s.age} 岁离世，原因是${cause.label}。${cause.note}。`,
             outcome: {
-              narrative: `你在 ${s.age} 岁离世。`,
-              detail: [{ label: '年龄', value: s.age + ' 岁' }],
+              narrative: `你在 ${s.age} 岁离世，原因是${cause.label}。${cause.note}。`,
+              detail: [
+                { label: '年龄', value: s.age + ' 岁' },
+                { label: '原因', value: cause.label },
+              ],
+              chip: cause.label,
             },
           });
         }
@@ -396,6 +417,10 @@
       if (s.career === 'unemployed') inc = C.INCOME.unemployed.median * Math.exp(rng.normal01() * 0.3);
       // 健康差会压低收入
       inc *= 0.7 + 0.3 * norm01(s.health, 25, 95);
+      // 税与社保：只对工资/经营类收入扣；养老金、失业补助、学生收入不计。
+      if (['junior', 'senior', 'manager', 'freelance', 'entrepreneur'].includes(s.career)) {
+        inc *= 1 - effectiveTaxRate(inc);
+      }
       return isFinite(inc) ? Math.max(0, inc) : 0;
     }
 
@@ -407,7 +432,9 @@
       const pref = C.EXPENSE.prefMult;
       const mult = pref[0] + (pref[1] - pref[0]) * this.strategy.consumptionPreference;
       let e = base * mult;
-      if (this.flags.hasChild) e *= 1.35;
+      // 子女成本只发生在抚养期；孩子成年后（父母约 58 岁起）不再按 1.35 倍计算。
+      // 旧版把 hasChild 乘到临终，退休后支出被高估，很多人被“拖”成负资产。
+      if (this.flags.hasChild && s.age < 58) e *= 1.35;
       if (this.flags.married) e *= 1.18;
       if (this.flags.houseOwned) e *= C.EXPENSE.housingRelief;
       // 高收入家庭生活水平自然上移，但比例低于收入增长（否则永远存不下钱）
@@ -530,7 +557,7 @@
 
     /**
      * 生死判定：Gompertz 风险，健康差等价于"生理年龄更大"。
-     * 返回 false 或 {p}。
+     * 返回 false 或 {p, cause}。
      */
     _deathCheck(rng) {
       const s = this.state;
@@ -538,9 +565,71 @@
       const effAge = s.age + (100 - s.health) * L.healthWeight * 0.35;
       const p = L.baselineHazard * Math.exp(L.gompertzB * (effAge - 40));
       const pp = clamp(p, 0, 0.62);
-      if (s.age >= L.absoluteMax) return { p: 1 };
-      if (s.age >= L.minAge && rng.next() < pp) return { p: pp };
+      if (s.age >= L.absoluteMax) return { p: 1, cause: this._deathCause(rng, true) };
+      if (s.age >= L.minAge && rng.next() < pp) return { p: pp, cause: this._deathCause(rng, false) };
       return false;
+    }
+
+    /**
+     * 死亡原因：按年龄给出一个可信的、带一点叙事的原因。
+     * 不是"47 岁被系统随机停掉"，而是具体的疾病或意外。
+     */
+    _deathCause(rng, natural) {
+      if (natural) {
+        return { key: 'aging', label: '自然衰老', note: '身体各项机能慢慢走到了尽头' };
+      }
+      const hadHealth = this.events.some((e) => e.id === 'health_issue');
+      const hadCatastrophe = this.events.some((e) => e.id === 'catastrophe');
+      const roll = rng.next();
+      if (hadCatastrophe && roll < 0.5) {
+        return { key: 'accident', label: '意外事故', note: '一场没有预兆的意外，来得很快' };
+      }
+      if (hadHealth && roll < 0.65) {
+        return { key: 'illness', label: '长期疾病', note: '身体长期透支，最后没有撑住' };
+      }
+      const age = this.state.age;
+      let pool;
+      if (age < 40) {
+        pool = [
+          ['accident', '意外事故', '一场没有预兆的意外，来得很快', 30],
+          ['cancer', '恶性肿瘤', '发现时已经太晚', 22],
+          ['cardio', '心脑血管疾病', '突发心梗或脑卒中', 18],
+          ['infection', '急性感染', '一场来得很快的重病', 15],
+          ['other', '其他疾病', '身体突然出了状况', 15],
+        ];
+      } else if (age < 60) {
+        pool = [
+          ['cancer', '恶性肿瘤', '发现时已经太晚', 30],
+          ['cardio', '心脑血管疾病', '突发心梗或脑卒中', 30],
+          ['accident', '意外事故', '一场没有预兆的意外，来得很快', 15],
+          ['illness', '长期疾病', '身体长期透支，最后没有撑住', 15],
+          ['other', '其他疾病', '身体突然出了状况', 10],
+        ];
+      } else if (age < 80) {
+        pool = [
+          ['cardio', '心脑血管疾病', '突发心梗或脑卒中', 32],
+          ['cancer', '恶性肿瘤', '发现时已经太晚', 28],
+          ['illness', '长期疾病', '身体长期透支，最后没有撑住', 18],
+          ['infection', '急性感染', '一场来得很快的重病', 12],
+          ['organ', '器官衰竭', '身体慢慢走到了尽头', 10],
+        ];
+      } else {
+        pool = [
+          ['organ', '器官衰竭', '身体慢慢走到了尽头', 32],
+          ['cardio', '心脑血管疾病', '心脏先一步停了下来', 26],
+          ['cancer', '恶性肿瘤', '和病痛相处了很久', 18],
+          ['infection', '急性感染', '一场来得很快的重病', 14],
+          ['aging', '自然衰老', '像一盏灯慢慢熄灭', 10],
+        ];
+      }
+      const total = pool.reduce((sum, x) => sum + x[3], 0);
+      let pick = rng.next() * total;
+      for (const [key, label, note, weight] of pool) {
+        pick -= weight;
+        if (pick <= 0) return { key, label, note };
+      }
+      const last = pool[pool.length - 1];
+      return { key: last[0], label: last[1], note: last[2] };
     }
 
     /** 生成结果（五维 + 时间序列摘要） */
@@ -575,6 +664,7 @@
         finalHappiness: s.happiness,
         finalRelationship: s.relationship,
         lifespan: s.age,
+        deathCause: this.deathCause || null,
         finalCareer: s.career,
         careerLabel: C.CAREER_LABEL[s.career] || s.career,
         educationLabel: educationLabel(s.education),

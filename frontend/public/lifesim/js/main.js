@@ -48,7 +48,7 @@
           LS.dom.h('div.row.gap-3.wrap', { style: { marginTop: 'var(--s-4)' } }, [
             LS.ui.button('回到首页', { variant: 'primary', onClick: () => LS.router.go('/') }),
             LS.ui.button('设计人生', { variant: 'ghost', onClick: () => LS.router.go('/create') }),
-            LS.ui.button('概率实验室', { variant: 'ghost', onClick: () => LS.router.go('/lab') }),
+            LS.ui.button('人生图鉴', { variant: 'ghost', onClick: () => LS.router.go('/codex') }),
             LS.ui.button('人生档案', { variant: 'ghost', onClick: () => LS.router.go('/archive') }),
           ]),
         ]),
@@ -84,8 +84,8 @@
     if (lsGet('lifesim.seen-welcome') === '1') return;
     setTimeout(() => {
       LS.ui.modal({
-        title: '欢迎来到人生概率实验室',
-        sub: '第一次使用，建议按这个顺序体验（约 3 分钟）',
+        title: '欢迎来到平行人生',
+        sub: '第一次使用，建议按这个顺序体验',
         size: 'lg',
         body: [
           LS.dom.h('div.golden-path', [
@@ -93,21 +93,21 @@
               LS.dom.h('div.gp-num', '1'),
               LS.dom.h('div.gp-body', [
                 LS.dom.h('div.gp-title', '设计一个角色'),
-                LS.dom.h('div.gp-desc', '调 6 个滑块，右侧会实时显示概率如何变化'),
+                LS.dom.h('div.gp-desc', '调几个滑块，捏出一个更像你的角色'),
               ]),
             ]),
             LS.dom.h('div.gp-step', [
               LS.dom.h('div.gp-num', '2'),
               LS.dom.h('div.gp-body', [
                 LS.dom.h('div.gp-title', '看完这一生'),
-                LS.dom.h('div.gp-desc', '逐年推进，点开任意事件看概率拆解'),
+                LS.dom.h('div.gp-desc', '逐年往下走，遇到岔路就停一下'),
               ]),
             ]),
             LS.dom.h('div.gp-step', [
               LS.dom.h('div.gp-num', '3'),
               LS.dom.h('div.gp-body', [
                 LS.dom.h('div.gp-title', '重演一万次'),
-                LS.dom.h('div.gp-desc', '看到真正的分布、尾部风险与相关结构'),
+                LS.dom.h('div.gp-desc', '把同一种活法演一万遍，看看有多少种结局'),
               ]),
             ]),
           ]),
@@ -156,7 +156,7 @@
     // 便于在控制台里调试
     global.LifeSim = LS;
     console.log(
-      '%cLifeSim%c 人生概率实验室已启动 · 版本 v1.0 · 完全离线运行',
+      '%cLifeSim%c 平行人生已启动 · 版本 v1.1 · 完全离线运行',
       'background:linear-gradient(135deg,#7c5cff,#2dd4bf);color:#fff;padding:2px 6px;border-radius:4px;font-weight:700',
       'color:#8f97b3',
     );

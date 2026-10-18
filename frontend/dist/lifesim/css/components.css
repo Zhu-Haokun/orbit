@@ -261,10 +261,12 @@
   border-radius: var(--r-pill);
   background: linear-gradient(135deg, rgba(139, 92, 246, 0.22), rgba(96, 165, 250, 0.14));
   border: 1px solid var(--c-fate-line);
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: var(--f-sm);
+  font-weight: 600;
   color: var(--c-fate);
-  letter-spacing: 0.4px;
+  letter-spacing: 0.2px;
+  font-variant-numeric: tabular-nums;
 }
 .fate-badge .lock { font-size: 13px; }
 
@@ -645,9 +647,18 @@ select option {
 }
 .mode-card:hover::after { transform: scale(1.25); }
 .mode-card .mc-ico {
-  font-size: 34px;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  font-size: 26px;
   line-height: 1;
+  color: var(--t-1);
+  background: var(--mc-glow, rgba(124, 92, 255, 0.18));
+  border: 1px solid var(--mc-line, var(--c-fate-line));
 }
+.mode-card .mc-ico .ui-icon { display: block; }
 .mode-card .mc-title {
   font-size: var(--f-h2);
   font-weight: 750;
@@ -658,9 +669,21 @@ select option {
   flex: 1;
 }
 .mode-card .mc-tag {
-  font-size: var(--f-xs);
-  color: var(--t-4);
-  font-family: var(--font-mono);
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  margin-top: auto;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  line-height: 1.4;
+  color: var(--t-2);
+  padding: 5px 11px;
+  border-radius: var(--r-pill);
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid var(--line-2);
+  white-space: nowrap;
 }
 .mode-card .mc-hint {
   max-height: 0;

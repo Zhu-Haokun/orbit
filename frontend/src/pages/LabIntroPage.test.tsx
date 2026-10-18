@@ -38,6 +38,9 @@ describe("LabIntroPage", () => {
     );
 
     expect(screen.getByText(/不读取你的星图、人物和记录/)).toBeInTheDocument();
-    expect(screen.getByText(/它不是人生预测器/)).toBeInTheDocument();
+    expect(screen.getByText(/别把它当预言/)).toBeInTheDocument();
+    // 入口页不再写“约 3 分钟 / 不需要注册”。
+    expect(screen.queryByText(/约 3 分钟/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/不需要注册/)).not.toBeInTheDocument();
   });
 });

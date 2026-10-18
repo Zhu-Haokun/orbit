@@ -46,6 +46,56 @@
     return d;
   }
 
+  /** 随机抽一个键（尽量避开当前值，保证点一次就能看出变化） */
+  function pickKey(obj, current) {
+    const keys = Object.keys(obj).filter((k) => k !== current);
+    if (!keys.length) return current;
+    return keys[Math.floor(Math.random() * keys.length)];
+  }
+
+  /** 随机天赋：三点保底，其余随机；尽量和上一次不同 */
+  function randomTalents(previous) {
+    const t = { learn: 1, body: 1, seed: 1 };
+    const keys = ['learn', 'body', 'seed'];
+    for (let i = 0; i < TALENT_POOL - 3; i++) {
+      t[keys[Math.floor(Math.random() * keys.length)]]++;
+    }
+    if (previous && t.learn === previous.learn && t.body === previous.body && t.seed === previous.seed) {
+      const from = keys.slice().sort((a, b) => t[b] - t[a])[0];
+      const to = keys.find((k) => k !== from);
+      t[from]--;
+      t[to]++;
+    }
+    return t;
+  }
+
+  /**
+   * 全部随机：角色、天赋、策略、世界一起换。
+   * 首页"随机来一局"和设计页"全部随机"共用。
+   */
+  function randomDraft(mode, previous) {
+    const d = newDraft(mode);
+
+    // 策略：预设里随机一个，且避开当前值
+    const currentPreset = (previous && previous.preset) || d.preset;
+    const presetKey = pickKey(C.STRATEGY_PRESETS, currentPreset);
+    d.preset = presetKey;
+    d.strategy = CH.strategyFromPreset(presetKey);
+
+    // 世界：标准 / 温和 / 动荡 / 黄金时代随机一个，且避开当前值
+    const currentWorld = (previous && previous.worldPreset) || d.worldPreset;
+    d.worldPreset = pickKey(C.WORLD_PRESETS, currentWorld);
+    d.worldOverrides = {};
+
+    // 天赋：10 点随机分给学习 / 身体 / 起步资源，三点保底
+    d.talents = randomTalents((previous && previous.talents) || d.talents);
+    applyTalents(d);
+    d.traits = (d.character.traits || []).slice(0, 2);
+    d.character.traits = d.traits.slice();
+    d.character.traitLabels = d.traits.map((k) => (C.TRAITS.find((t) => t.key === k) || {}).label).filter(Boolean);
+    return d;
+  }
+
   /** 天赋点 → 角色数值 */
   function applyTalents(d) {
     const fam = C.FAMILY.find((f) => f.key === d.character.familyResource) || C.FAMILY[1];
@@ -79,13 +129,17 @@
       sub: mode === 'key' ? '关键人生 · 你将在岔路口亲自决策' : '极速一生 · 自动推进，逐年观察',
     }, [
       V.head({
-        kicker: '第 1 步 / 共 5 步',
-        title: '设计一个起点，然后让概率接管',
-        sub: '你决定的不是结果，而是「倾向」。同样的滑块，在不同的运气下会走出完全不同的人生——这正是这个软件想让你看到的事。',
+        kicker: '先捏一个人',
+        title: '设计一个起点，然后让日子自己走',
+        sub: '你调的不是结果，而是倾向。同样的性格和选择，在不同运气下会走出很不一样的人生。',
         actions: [
-          LS.ui.button('随机生成角色', {
+          LS.ui.button('全部随机', {
             variant: 'ghost',
-            onClick: () => { draft = newDraft(draft.mode); rebuild(); LS.ui.toast('已生成新角色与新的命运种子', 'fate'); },
+            onClick: () => {
+              draft = randomDraft(draft.mode, draft);
+              rebuild();
+              LS.ui.toast('角色、天赋、策略和世界都换了', 'fate');
+            },
           }),
           LS.ui.button('重演 10,000 次', {
             variant: 'primary',
@@ -130,8 +184,8 @@
           h('div', { style: { height: 'var(--s-3)' } }),
 
           h('div.row.between', [
-            LS.ui.chip('天赋点 ' + left + ' / ' + TALENT_POOL, left > 0 ? 'warn' : 'ok'),
-            h('span', { style: { fontSize: 'var(--f-xxs)', color: 'var(--t-4)' } }, '点数不限必须用完'),
+            LS.ui.chip('剩余天赋点 ' + left + ' / ' + TALENT_POOL, left > 0 ? 'warn' : 'ok'),
+            h('span', { style: { fontSize: 'var(--f-xxs)', color: 'var(--t-4)' } }, '可以不用完'),
           ]),
           h('div.talent-list', TALENT_DEFS.map((t) => h('div.talent-row', [
             h('div.tr-head', [
@@ -161,7 +215,7 @@
           ]))),
 
           h('div.hr'),
-          LS.ui.section('个性标签', '最多 2 个 · 影响事件出现概率'),
+          LS.ui.section('个性标签', '最多 2 个 · 影响一些事出现的可能'),
           h('div.trait-chips', C.TRAITS.map((t) => {
             const on = draft.traits.includes(t.key);
             return h('button.trait-chip' + (on ? '.on' : ''), {
@@ -243,7 +297,7 @@
             ]),
           ]),
           h('div', { style: { height: 'var(--s-3)' } }),
-          LS.ui.notice('滑块改变的是「行为概率」而不是确定命令：把「职业风险」拉满，不代表你一定去创业，只是每个岔路口都更可能选择冒险。', 'know'),
+          LS.ui.notice('滑块改变的是「倾向」，不是命令：把「职业风险」拉满，不代表你一定去创业，只是每个岔路口都更可能选择冒险。', 'know'),
         ],
       });
 
@@ -294,14 +348,14 @@
             ]))),
 
           h('div.hr'),
-          LS.ui.section('命运种子', '相同种子 = 完全相同的随机事件序列'),
+          LS.ui.section('这次的世界编号', '同一个编号，就会遇到同一串事'),
           h('div.seed-row', [
             h('input.input', {
               type: 'number', value: String(draft.worldSeed), id: 'seed-input',
               oninput: (e) => { draft.worldSeed = Math.max(1, parseInt(e.target.value, 10) || 1); updatePreview(); },
             }),
             LS.ui.button('🎲', {
-              variant: 'ghost', title: '换一个种子',
+              variant: 'ghost', title: '换一个世界',
               onClick: () => {
                 draft.worldSeed = (Math.floor(Math.random() * 899999) + 100000) >>> 0;
                 const el = document.getElementById('seed-input');
@@ -312,8 +366,8 @@
           ]),
           h('div', { style: { marginTop: 'var(--s-3)' } },
             LS.ui.switchRow({
-              name: '锁定世界种子',
-              desc: '所有平行人生共享同一条世界经济曲线 —— 这样差异就只来自你的选择，而不是运气',
+              name: '锁住这次的运气',
+              desc: '所有平行人生遇到同一串事 —— 这样差别就只来自你的选择，而不是运气',
               checked: draft.lockWorldSeed,
               onChange: (v) => { draft.lockWorldSeed = v; updatePreview(); },
             })),
@@ -338,7 +392,7 @@
                 variant: 'ghost',
                 onClick: () => commitAndGo('/universe', { size: 1000 }),
               }),
-              LS.ui.button('先看默认策略的分布', {
+              LS.ui.button('先看看默认活法的结果', {
                 variant: 'ghost',
                 onClick: () => { draft.strategy = CH.strategyFromPreset('balanced'); commitAndGo('/universe'); },
               }),
@@ -363,8 +417,8 @@
     function panelPreview() {
       const ctx = previewCtx();
       return LS.ui.card({
-        title: '④ 概率预览',
-        sub: `${draft.previewAge} 岁时，各项事件的发生概率（基于当前策略实时计算）`,
+        title: '④ 那时候，可能会遇到什么',
+        sub: `${draft.previewAge} 岁时，这些事出现的可能性（会跟着你的性格和选择变）`,
         actions: [
           LS.ui.segmented(
             [20, 25, 30, 35, 45, 55].map((a) => ({ value: a, label: a + '岁' })),
@@ -404,7 +458,7 @@
               })),
               max: Math.max(0.4, ...top.map((r) => r.p)) * 1.2,
               fmt: (v) => U.pct(v, 1),
-              valueLabel: '发生概率',
+              valueLabel: '出现的可能',
               pad: { t: 10, r: 60, b: 10, l: 116 },
               barHeight: 20,
             });
@@ -412,22 +466,22 @@
         }),
         h('div', { style: { height: 'var(--s-3)' } }),
         LS.ui.notice([
-          h('span', '每一项概率都可以点开看拆解。'),
+          h('span', '想较真的时候，点开任意一项，看看这个数字怎么来的。'),
           h('br'),
           h('span', { style: { opacity: 0.8 } },
-            `例如「极端成功」当前基础概率 0.09%，加上你的策略修正后变为 ${
+            `比如「极端成功」，基础只有 0.09%，加上你的选择后变成 ${
               U.pct((rows.find((r) => r.ev.id === 'extreme_success') || { p: 0 }).p, 3)}。`),
         ], 'know'),
         h('div', { style: { height: 'var(--s-3)' } }),
         h('div.row.gap-2.wrap', [
-          LS.ui.button('看这项概率是怎么算出来的', {
+          LS.ui.button('这个数字怎么来的', {
             variant: 'ghost', size: 'sm',
             onClick: () => {
               const target = top[0];
               if (!target) return;
               LS.ui.modal({
-                title: '概率拆解 · ' + target.ev.title,
-                sub: '为什么是 ' + U.pct(target.p, 2) + ' ？',
+                title: '这件事有多可能 · ' + target.ev.title,
+                sub: '现在看起来是 ' + U.pct(target.p, 2),
                 body: [LS.ui.eventCard({
                   id: target.ev.id, title: target.ev.title, icon: target.ev.icon,
                   age: ctx.age, probability: target.p, base: target.base,
@@ -438,7 +492,6 @@
               });
             },
           }),
-          V.whyButton('decision_theory', '概率不是结果，那决策该怎么做？'),
         ]),
       ]);
     }
@@ -489,5 +542,5 @@
   }
 
   LS.router.register('/create', renderCreate);
-  LS.views.create = { render: renderCreate, newDraft };
+  LS.views.create = { render: renderCreate, newDraft, randomDraft };
 })(typeof globalThis !== 'undefined' ? globalThis : this);

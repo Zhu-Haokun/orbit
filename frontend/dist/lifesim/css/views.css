@@ -237,7 +237,19 @@
   border-color: var(--mc-line, var(--line-2));
 }
 .mode-card:hover::after { transform: scale(1.25); }
-.mode-card .mc-ico { font-size: 30px; }
+.mode-card .mc-ico {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  font-size: 26px;
+  line-height: 1;
+  color: var(--t-1);
+  background: var(--mc-glow, rgba(124, 92, 255, 0.18));
+  border: 1px solid var(--mc-line, var(--c-fate-line));
+}
+.mode-card .mc-ico .ui-icon { display: block; }
 .mode-card .mc-title {
   font-size: 20px;
   font-weight: 750;
@@ -252,15 +264,21 @@
   min-height: 62px;
 }
 .mode-card .mc-tag {
-  display: inline-block;
-  margin-top: var(--s-4);
-  font-size: var(--f-xxs);
-  font-family: var(--font-mono);
-  color: var(--t-3);
-  padding: 3px 10px;
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  margin-top: auto;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  line-height: 1.4;
+  font-family: var(--font-sans);
+  color: var(--t-2);
+  padding: 5px 11px;
   border-radius: var(--r-pill);
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid var(--line-2);
+  white-space: nowrap;
 }
 .mode-card .mc-hint {
   font-size: var(--f-xs);
@@ -271,6 +289,46 @@
   transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease);
 }
 .mode-card:hover .mc-hint { opacity: 1; transform: none; }
+
+/* 人生阶段场景（原创 SVG，可隐藏） */
+.scene-host { margin-bottom: var(--s-3); }
+.life-scene {
+  position: relative;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  border: 1px solid var(--line-2);
+  background: #0b1224;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+}
+.life-scene .scene-svg { display: block; width: 100%; height: 218px; }
+.life-scene.compact .scene-svg { height: 160px; }
+.life-scene .scene-caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 28px 20px 14px;
+  color: #f8fafc;
+  background: linear-gradient(180deg, transparent, rgba(2, 6, 23, 0.78));
+}
+.life-scene .scene-kicker {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: #99f6e4;
+  text-transform: uppercase;
+}
+.life-scene strong { font-size: 18px; font-weight: 750; letter-spacing: -0.01em; }
+.life-scene .scene-range { font-size: 12px; color: #cbd5e1; }
+@media (max-width: 720px) {
+  .life-scene .scene-svg { height: 160px; }
+  .life-scene .scene-caption { padding: 22px 14px 10px; gap: 7px; }
+  .life-scene strong { font-size: 15px; }
+  .life-scene .scene-range { display: none; }
+}
 
 /* 数据条 */
 .daily-strip {
@@ -299,6 +357,7 @@
   color: var(--c-know);
 }
 .daily-card .dc-q { font-size: 15.5px; line-height: 1.65; font-weight: 600; }
+.daily-card .dc-actions { margin-top: auto; padding-top: var(--s-1); }
 .daily-card .dc-a {
   font-size: var(--f-sm);
   line-height: 1.72;
@@ -501,9 +560,9 @@
   gap: 3px var(--s-3);
   margin-top: var(--s-3);
 }
-.wcp { display: flex; justify-content: space-between; font-size: 10.5px; font-family: var(--font-mono); }
-.wcp .wcp-l { color: var(--t-4); }
-.wcp .wcp-v { color: var(--t-2); }
+.wcp { display: flex; justify-content: space-between; font-size: 11px; font-family: var(--font-sans); }
+.wcp .wcp-l { color: var(--t-3); }
+.wcp .wcp-v { color: var(--t-2); font-family: var(--font-mono); font-weight: 600; }
 
 /* 种子输入 */
 .seed-row { display: flex; gap: var(--s-2); }
@@ -706,15 +765,27 @@
 /* 决策卡 */
 .decision-host:empty { display: none; }
 .decision-card {
+  position: relative;
   padding: var(--s-6);
   border-radius: var(--r-lg);
   border: 1px solid var(--c-fate-line);
   background:
-    radial-gradient(80% 120% at 0% 0%, rgba(167, 139, 250, 0.16), transparent 60%),
+    radial-gradient(80% 120% at 0% 0%, rgba(167, 139, 250, 0.18), transparent 60%),
     var(--glass);
   backdrop-filter: blur(var(--glass-blur));
   -webkit-backdrop-filter: blur(var(--glass-blur));
   animation: fadeUp var(--dur-slow) var(--ease-out) both;
+}
+.decision-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 24px;
+  bottom: 24px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: linear-gradient(180deg, var(--c-fate), var(--c-teal));
+  opacity: 0.7;
 }
 .decision-card .de-head {
   display: flex;
@@ -722,48 +793,145 @@
   gap: var(--s-4);
   margin-bottom: var(--s-5);
 }
-.decision-card .de-ico { font-size: 30px; }
-.decision-card .de-title { font-size: 20px; font-weight: 750; letter-spacing: -0.02em; }
-.decision-card .de-q { font-size: var(--f-sm); color: var(--t-2); margin-top: 5px; line-height: 1.6; }
-.decision-card .de-head .chip { margin-left: auto; }
+.decision-card .de-ico {
+  width: 54px;
+  height: 54px;
+  flex: 0 0 54px;
+  display: grid;
+  place-items: center;
+  border-radius: 17px;
+  font-size: 28px;
+  background: linear-gradient(135deg, rgba(167, 139, 250, 0.22), rgba(45, 212, 191, 0.10));
+  border: 1px solid var(--c-fate-line);
+}
+.decision-card .de-title { font-size: 21px; font-weight: 750; letter-spacing: -0.02em; }
+.decision-card .de-q { font-size: var(--f-sm); color: var(--t-2); margin-top: 6px; line-height: 1.65; max-width: 62ch; }
+.decision-card .de-head .chip { margin-left: auto; flex: 0 0 auto; }
 
 .choice-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--s-4);
 }
-@media (max-width: 1080px) { .choice-grid { grid-template-columns: minmax(0, 1fr); } }
+.choice-grid.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 1080px) { .choice-grid, .choice-grid.cols-2 { grid-template-columns: minmax(0, 1fr); } }
 
 .choice-card {
+  position: relative;
   text-align: left;
-  padding: var(--s-4);
-  border-radius: var(--r-md);
-  background: rgba(255, 255, 255, 0.035);
-  border: 1px solid var(--line);
+  padding: var(--s-5);
+  min-height: 196px;
+  border-radius: var(--r-lg);
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.018)),
+    rgba(10, 16, 30, 0.5);
+  border: 1px solid var(--line-2);
   color: var(--t-2);
   font-family: inherit;
   cursor: pointer;
   display: flex;
   flex-direction: column;
   gap: var(--s-2);
-  transition: all var(--dur) var(--ease);
+  overflow: hidden;
+  transition: transform var(--dur) var(--ease), border-color var(--dur) var(--ease),
+    background var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+.choice-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--c-fate);
+  opacity: 0.4;
+  transition: opacity var(--dur) var(--ease);
 }
 .choice-card:hover {
-  transform: translateY(-3px);
+  transform: translateY(-4px);
   border-color: var(--c-fate-line);
-  background: rgba(167, 139, 250, 0.10);
-  box-shadow: var(--glow-fate);
+  background:
+    radial-gradient(120% 100% at 0% 0%, rgba(167, 139, 250, 0.16), transparent 55%),
+    rgba(20, 26, 46, 0.72);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35), var(--glow-fate);
 }
-.choice-card .cc-top { display: flex; align-items: center; justify-content: space-between; gap: var(--s-2); }
-.choice-card .cc-label { font-size: 15px; font-weight: 700; color: var(--t-1); }
-.choice-card .cc-desc { font-size: var(--f-sm); line-height: 1.62; }
-.choice-card .cc-effect {
+.choice-card:hover::before { opacity: 1; }
+.choice-card .cc-index {
+  position: absolute;
+  right: 16px;
+  top: 8px;
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: 38px;
+  font-weight: 800;
+  letter-spacing: -0.06em;
+  color: rgba(255, 255, 255, 0.055);
+  pointer-events: none;
+}
+.choice-card .cc-top {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding-right: 34px;
+}
+.choice-card .cc-label { font-size: 16px; font-weight: 700; color: var(--t-1); line-height: 1.35; white-space: nowrap; }
+.choice-card .cc-top .chip { align-self: flex-start; }
+.choice-card .cc-desc { font-size: var(--f-sm); line-height: 1.7; color: var(--t-2); padding-right: var(--s-3); }
+.choice-card .cc-effect {
+  font-size: 11.5px;
+  line-height: 1.5;
   color: var(--c-teal);
+  padding: 6px 9px;
+  border-radius: 8px;
+  background: rgba(45, 212, 191, 0.06);
+  border: 1px solid rgba(45, 212, 191, 0.16);
+}
+.choice-card .cc-go {
+  margin-top: auto;
   padding-top: var(--s-2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c-fate);
+  opacity: 0.7;
+  transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease);
+}
+.choice-card:hover .cc-go { opacity: 1; transform: translateX(2px); }
+.decision-note {
+  margin-top: var(--s-4);
+  font-size: 11.5px;
+  color: var(--t-4);
+  text-align: right;
+}
+
+/* 下一个关键抉择 */
+.next-choice {
+  margin-top: var(--s-4);
+  padding-top: var(--s-4);
   border-top: 1px dashed var(--line);
 }
+.next-choice .nc-kicker {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--c-fate);
+  text-transform: uppercase;
+}
+.next-choice .nc-title { margin: 4px 0 8px; font-size: 13px; line-height: 1.5; color: var(--t-2); }
+.next-choice .nc-note { font-size: 12px; line-height: 1.6; color: var(--t-3); }
+.next-choice .nc-log {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s-3);
+  margin-top: 8px;
+  padding-top: 7px;
+  border-top: 1px dashed var(--line);
+  font-size: 11.5px;
+  color: var(--t-3);
+}
+.next-choice .nc-log span:first-child { font-family: var(--font-mono); color: var(--c-fate); }
 
 /* 结束卡 */
 .finish-card { border-color: var(--c-gold-line, rgba(252, 211, 77, 0.42)); }
@@ -866,7 +1034,7 @@
 
 /* 分位数条（备用组件） */
 .qb-row { display: flex; align-items: center; gap: var(--s-3); font-size: var(--f-xs); }
-.qb-row .qb-label { flex: 0 0 40px; color: var(--t-3); font-family: var(--font-mono); }
+.qb-row .qb-label { flex: 0 0 40px; color: var(--t-3); font-family: var(--font-sans); }
 .qb-row .qb-track { flex: 1; height: 6px; border-radius: var(--r-pill); background: rgba(255, 255, 255, 0.07); overflow: hidden; }
 .qb-row .qb-track > i { display: block; height: 100%; background: var(--grad-fate); }
 .qb-row .qb-val { flex: 0 0 92px; text-align: right; font-weight: 650; font-variant-numeric: tabular-nums; }

@@ -1,9 +1,9 @@
 /* ============================================================
  * LifeSim · views/codex.js
- * 概率图鉴（规格书 §29）
+ * 人生图鉴（事件 / 成就）
  *
- * 三个标签页：概率概念 / 事件图鉴 / 成就
- * 图鉴的解锁条件是"你真正看过它"，而不是"你点了它"。
+ * 两个标签页：事件图鉴 / 成就
+ * 这里不收概率概念；概率只在“看细节”里露出一点。
  * ============================================================ */
 (function (global) {
   'use strict';
@@ -14,41 +14,48 @@
   const C = LS.config;
 
   const TABS = [
-    { value: 'concept', label: '📖 概率概念' },
     { value: 'event', label: '✦ 事件图鉴' },
     { value: 'ach', label: '🏆 成就' },
   ];
 
   const EVENT_NOTE = {
-    first_job: '求职是一个几何分布过程：每次面试成功概率越低，需要投的简历越多。',
-    graduation: '学历不是终点而是收入的乘数 —— 它把整条收入分布向右推。',
-    marriage: '关系事件同时影响幸福与支出结构。',
-    child: '生育会显著提高支出、降低短期可支配收入，但提升长期关系与幸福。',
-    retirement: '退休后收入骤降，但支出与压力也下降。',
-    startup: '创业是典型的厚尾赌注：投入确定，收益分布极不对称。',
-    startup_success: '初创成功是罕见事件，一旦发生会改变整个量级。',
-    high_offer: '高薪机会是收入乘数的跳变，直接影响后续所有年份。',
-    investment_chance: '投资机会的收益来自对数正态分布 —— 中位数远低于均值。',
-    career_change: '转行会重置收入乘数，但可能带来更高的职业资本增速。',
-    overseas: '海外发展提高收入上限，同时提高关系与健康的波动。',
-    layoff: '失业是最典型的左尾事件：它同时打击收入、幸福与健康。',
-    health_issue: '健康冲击是不可逆的资产减值，且会通过寿命放大影响。',
-    market_crash: '系统性风险：所有资产同时下跌，分散化在此时失效。',
-    industry_decline: '行业衰退是慢性的，它的伤害在于持续多年。',
-    extreme_success: '极端成功需要运气与选择同时到位，概率极低但影响极大。',
-    catastrophe: '重大冲击是模型的"压力测试"，用来暴露脆弱性。',
-    windfall: '意外之财是纯粹的随机注入，与你的策略无关。',
-    bankruptcy: '破产是吸收壁：一旦触及，后续所有复利都从零开始。',
-    death: '死亡是模型的终止条件，它本身也是一次概率抽样。',
+    first_job: '第一份工作往往决定了起点，但不太决定终点。',
+    graduation: '学历会把第一份工作的起点往上推一点，之后要看你怎么走。',
+    marriage: '结婚是两个人的事，也是两张账单的事。',
+    child: '养孩子会明显改变接下来二十年的现金流和作息。',
+    child_school: '孩子上学后，家里的时间表和账单都会变。',
+    buy_house: '买房是把很多年的现金流，换成一把钥匙。',
+    promotion: '升职是好事，也意味着更多责任和更少的觉。',
+    parent_illness: '父母老去，是很多人中年第一次真正被叫醒。',
+    divorce: '有些关系走到这里，分开是两个人的决定。',
+    accident: '意外不会提前打招呼。',
+    scam: '骗局通常看起来像机会。',
+    burnout: '身体有时会先于意识发出警告。',
+    retirement: '收入会降一截，时间会多一截。',
+    startup: '创业是把稳定的工资换成一个结果差得很远的赌注。',
+    startup_success: '少数人真的做成了，但别把幸存者当成平均值。',
+    high_offer: '有时候，一次跳槽比十年省吃俭用更管用。',
+    investment_chance: '投资机会看起来像机会，也可能像账单。',
+    career_change: '转行会归零一部分积累，也可能打开另一条路。',
+    overseas: '去更远的地方，收入和孤独一起变高。',
+    layoff: '被裁不是你的错，但现金流会先疼一下。',
+    health_issue: '身体出问题的时候，其他事情都会变小。',
+    market_crash: '市场一起跌的时候，分散也救不了所有人。',
+    industry_decline: '行业下行是慢慢发生的，等感觉到时通常已经晚了。',
+    extreme_success: '极少数人会被时代选中。看看就好，别把它当计划。',
+    catastrophe: '有些意外没有道理可讲，只能提前留一点缓冲。',
+    windfall: '天上掉下来的钱，和你的努力关系不大。',
+    bankruptcy: '债务重组不是终点，但从零开始很疼。',
+    death: '死亡不是随机停止键。模型会按年龄、健康和发生过的事，给出一个具体原因。',
+    old_friend: '有些朋友几年不联系，坐下来还是能聊很久。',
+    stray_cat: '有些日子是被一只猫救回来的。',
+    late_bloom: '有些人前半生普通，后半生才慢慢开花。',
+    side_hustle: '副业不一定让你发财，但可能让你多一条退路。',
   };
 
   function renderCodex() {
-    let tab = 'concept';
+    let tab = 'event';
     const elBody = h('div');
-
-    function unlockedCount() {
-      return Object.keys(LS.store.state.codexSeen || {}).filter((k) => k.startsWith('concept:')).length;
-    }
 
     function rebuild() {
       mount(elBody, [body()]);
@@ -56,70 +63,8 @@
     }
 
     function body() {
-      if (tab === 'concept') return conceptTab();
       if (tab === 'event') return eventTab();
       return achTab();
-    }
-
-    /* ---------------- 概念 ---------------- */
-    function conceptTab() {
-      const all = LS.knowledge.list();
-      const seen = LS.store.state.codexSeen || {};
-      const p = LS.knowledge.relevant(null);
-      return h('div', [
-        LS.ui.card({
-          title: '概率概念图鉴',
-          sub: '每个概念都有三层解释：直觉比喻 → 数学定义 → 简化解释',
-          body: [
-            h('div.row.between.wrap', { style: { marginBottom: 'var(--s-4)' } }, [
-              h('div', { style: { flex: '1', minWidth: '220px' } }, [
-                h('div.row.between', { style: { marginBottom: '6px' } }, [
-                  h('span', { style: { fontSize: 'var(--f-sm)', color: 'var(--t-3)' } }, '解锁进度'),
-                  h('b', { style: { fontFamily: 'var(--font-mono)' } },
-                    unlockedCount() + ' / ' + all.length),
-                ]),
-                LS.ui.progressBar(unlockedCount() / all.length, { tone: 'know', thick: true }),
-              ]),
-              h('div.row.gap-2.wrap', [
-                LS.ui.button('解锁全部（仅供浏览）', {
-                  variant: 'ghost', size: 'sm',
-                  onClick: () => {
-                    for (const c of all) LS.store.seeCodex('concept:' + c.id);
-                    LS.ui.toast('已标记全部概念为已读', 'fate');
-                    rebuild();
-                  },
-                }),
-              ]),
-            ]),
-            LS.ui.notice('术语第一次出现在正文里时，可以直接点击查看解释 —— 不需要离开当前页面。', 'know'),
-          ],
-        }),
-        h('div', { style: { height: 'var(--s-5)' } }),
-        h('div.codex-grid', all.map((c) => {
-          const got = !!seen['concept:' + c.id];
-          return h('div.codex-item' + (got ? '' : '.locked'), {
-            onclick: () => { LS.store.seeCodex('concept:' + c.id); LS.knowledge.explain(c.id); rebuild(); },
-          }, [
-            h('div.row.gap-2', [
-              h('span', { style: { fontSize: '20px' } }, c.ico),
-              h('div', [
-                h('div.ci-name', c.name),
-                h('div.ci-bind', got ? '已解锁' : '未查看'),
-              ]),
-              got ? LS.ui.chip('✓', 'ok') : LS.ui.chip('未读', 'ghost'),
-            ]),
-            h('div', {
-              style: { fontSize: 'var(--f-xs)', color: 'var(--t-3)', lineHeight: '1.6', marginTop: 'var(--s-3)' },
-            }, c.metaphor.slice(0, 68) + (c.metaphor.length > 68 ? '…' : '')),
-          ]);
-        })),
-        h('div', { style: { height: 'var(--s-4)' } }),
-        LS.ui.card({
-          title: '推荐从这里开始',
-          sub: '如果只想理解三件事，就理解这三个',
-          body: h('div.grid.g-3', p.slice(0, 3).map((id) => LS.knowledge.card(id, { compact: true }))),
-        }),
-      ]);
     }
 
     /* ---------------- 事件 ---------------- */
@@ -154,14 +99,10 @@
 
       return h('div', [
         LS.ui.card({
-          title: '随机事件图鉴',
-          sub: `共 ${LS.events.EVENTS.length} 个事件 · 概率为"典型 30 岁"下的基准值，会随你的策略与状态变化`,
+          title: '你可能会遇到的事',
+          sub: `共 ${LS.events.EVENTS.length} 个事件 · 年龄是大致范围 · 出现的可能性只是参考，会随你的性格和选择变化`,
           body: [
-            LS.ui.notice([
-              '每个事件的概率都是可拆解的：',
-              h('b', '最终概率 = 基础概率 + Σ 各项修正'),
-              '。这也是软件里所有概率条都能"加得起来"的原因。',
-            ], 'know'),
+            LS.ui.notice('这里收藏的是故事，不是术语。想较真的时候，再点开“看细节”。', 'know'),
           ],
         }),
         h('div', { style: { height: 'var(--s-5)' } }),
@@ -171,24 +112,29 @@
             return LS.ui.card({
               className: 'event-codex-card',
               title: (ev.icon || '') + ' ' + ev.title,
-              sub: (ev.major ? '重大事件 · ' : '') + (ev.minAge ? ev.minAge + '–' + (ev.maxAge || '∞') + ' 岁' : '全年段'),
+              sub: (ev.major ? '重要的事 · ' : '') + (ev.minAge ? ev.minAge + '–' + (ev.maxAge || '∞') + ' 岁' : '全年段'),
               body: [
-                h('div', { style: { marginBottom: 'var(--s-3)' } },
-                  h('div.prob-bar', [
-                    h('div.track', h('i', { style: { width: U.clamp01(r.p) * 100 + '%' } })),
-                    h('span', {
-                      style: { fontFamily: 'var(--font-mono)', fontWeight: '700', minWidth: '56px', textAlign: 'right' },
-                    }, U.pct(r.p, 2)),
-                  ])),
                 EVENT_NOTE[ev.id] ? h('p', {
-                  style: { fontSize: 'var(--f-sm)', color: 'var(--t-2)', lineHeight: '1.65' },
-                }, EVENT_NOTE[ev.id]) : null,
-                h('div.factor-list', [
-                  h('div.factor-row', [h('span.f-name', '基础概率'), h('span.f-val', U.pct(r.base, 2))]),
-                  ...(r.factors || []).slice(0, 3).map((f) => h('div.factor-row', [
-                    h('span.f-name', f.label),
-                    h('span.f-val' + (f.delta >= 0 ? '.pos' : '.neg'), U.signedPct(f.delta, 2)),
-                  ])),
+                  style: { fontSize: 'var(--f-sm)', color: 'var(--t-2)', lineHeight: '1.65', marginBottom: 'var(--s-3)' },
+                }, EVENT_NOTE[ev.id]) : h('p', {
+                  style: { fontSize: 'var(--f-sm)', color: 'var(--t-2)', lineHeight: '1.65', marginBottom: 'var(--s-3)' },
+                }, '它可能在你人生的某个普通年份里出现。'),
+                h('div.row.between', { style: { marginBottom: '6px' } }, [
+                  h('span', { style: { fontSize: 'var(--f-xs)', color: 'var(--t-3)' } }, '出现的可能性'),
+                  h('span', { style: { fontFamily: 'var(--font-mono)', fontWeight: '700' } }, U.pct(r.p, 1)),
+                ]),
+                h('div.prob-bar', h('div.track', h('i', { style: { width: U.clamp01(r.p) * 100 + '%' } }))),
+                h('details', { style: { marginTop: 'var(--s-3)' } }, [
+                  h('summary', {
+                    style: { cursor: 'pointer', fontSize: 'var(--f-xs)', color: 'var(--t-3)' },
+                  }, '这个数字怎么来的'),
+                  h('div.factor-list', [
+                    h('div.factor-row', [h('span.f-name', '基础可能性'), h('span.f-val', U.pct(r.base, 2))]),
+                    ...(r.factors || []).slice(0, 3).map((f) => h('div.factor-row', [
+                      h('span.f-name', f.label),
+                      h('span.f-val' + (f.delta >= 0 ? '.pos' : '.neg'), U.signedPct(f.delta, 2)),
+                    ])),
+                  ]),
                 ]),
               ],
             });
@@ -210,7 +156,7 @@
       return h('div', [
         LS.ui.card({
           title: '成就进度',
-          sub: '成就描述的是"你观察到了什么"，而不是"你点了多少下"',
+          sub: '你活成了什么样子，就会点亮什么',
           body: [
             h('div.row.between', { style: { marginBottom: '8px' } }, [
               h('span', { style: { fontSize: 'var(--f-sm)', color: 'var(--t-3)' } }, '总进度'),
@@ -239,11 +185,11 @@
       ]);
     }
 
-    const page = V.render({ title: '概率图鉴', sub: '概念 · 事件 · 成就', fate: null }, [
+    const page = V.render({ title: '人生图鉴', sub: '事件 · 成就', fate: null }, [
       V.head({
-        kicker: '图鉴',
-        title: '把概率论变成可以收藏的东西',
-        sub: '这里的每一条都对应软件里真实存在的模型。看懂它们，你就看懂了这个软件在算什么。',
+        kicker: '收藏',
+        title: '你遇到过的事，和你活成的样子',
+        sub: '这里不收术语，只收故事。有些事件要真的遇到，才会亮起来。',
         tight: true,
         actions: [LS.ui.segmented(TABS, tab, (v) => { tab = v; rebuild(); })],
       }),

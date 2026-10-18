@@ -28,25 +28,25 @@ const MODES = [
   {
     icon: Zap,
     title: "极速一生",
-    desc: "5 秒生成完整一生，只看关键事件与概率拆解。",
+    desc: "几分钟看完一辈子，只看几个关键瞬间。",
   },
   {
     icon: Compass,
     title: "关键人生",
-    desc: "在 6 个岔路口停下来，由你决定下一步，其余交给策略。",
+    desc: "在几个岔路口停下来，由你决定往哪走。",
   },
   {
     icon: Telescope,
     title: "平行宇宙",
-    desc: "把同一种活法重演 10,000 次，看分布、尾部风险与相关结构。",
+    desc: "把同一种活法演上一万遍，看看你会落在哪。",
   },
 ] as const;
 
 const STATS = [
-  { value: "17", label: "种随机事件" },
-  { value: "9", label: "种概率分布" },
-  { value: "6", label: "个策略维度" },
-  { value: "10,000", label: "次重演 / 局" },
+  { value: "29", label: "种人生事件" },
+  { value: "6", label: "个选择" },
+  { value: "10,000", label: "次重演" },
+  { value: "3", label: "档玩法" },
 ] as const;
 
 /** 固定的星点，避免每次渲染位置都变（也避免引入随机数）。 */
@@ -172,7 +172,7 @@ export default function LabIntroPage() {
           <div>
             <Badge tone="accent" className="gap-1.5">
               <Sparkles className="size-3" aria-hidden />
-              实验场 · 沙盒
+              平行人生 · 小沙盒
             </Badge>
 
             <h1 className="mt-5 font-display text-[30px] leading-[1.22] text-ink sm:text-[34px] md:text-[38px]">
@@ -184,13 +184,12 @@ export default function LabIntroPage() {
             </h1>
 
             <p className="mt-4 max-w-[46ch] text-balance text-body leading-7 text-ink-2">
-              这里没有正确答案。你设定性格、策略与世界环境，它用蒙特卡洛把你的选择重演成千上万次，
-              然后如实告诉你：均值在哪里，风险藏在哪里，概率与运气各占多少。
+              这里没有标准答案。你设定性格、策略和环境，看看不同的选择会把日子带到哪里。
+              偶尔，运气也会插一脚。
             </p>
 
             <div className="mt-6 flex flex-wrap items-center gap-3">
               <EnterLink />
-              <span className="text-micro text-ink-3">约 3 分钟 · 不需要注册</span>
             </div>
 
             <p className="mt-4 flex items-center gap-1.5 text-micro text-ink-3">
@@ -215,7 +214,7 @@ export default function LabIntroPage() {
       <section className="mt-8">
         <div className="flex flex-wrap items-end justify-between gap-2">
           <h2 className="font-display text-h2 text-ink">三种玩法</h2>
-          <span className="text-micro text-ink-3">从 5 秒的一局，到一万次的重演</span>
+          <span className="text-micro text-ink-3">从随便玩一局，到认真推演一万次</span>
         </div>
 
         <div className="mt-3 grid gap-3 md:grid-cols-3">
@@ -238,17 +237,17 @@ export default function LabIntroPage() {
         <Card tone="soft" className="p-5 md:p-6">
           <div className="flex items-center gap-2 text-accent">
             <ShieldCheck className="size-3.5" aria-hidden />
-            <span className="text-micro">边界</span>
+            <span className="text-micro">说清楚</span>
           </div>
-          <h2 className="mt-2 font-display text-h2 text-ink">它不是人生预测器</h2>
+          <h2 className="mt-2 font-display text-h2 text-ink">别把它当预言</h2>
           <p className="mt-2 text-body leading-7 text-ink-2">
-            它必然简化了现实：家庭支持的具体形式、行业技术变革、地域差异、个体禀赋的复杂性都没有被建模。
-            它的价值是让你看清结构性权衡，而不是替你做出人生选择。
+            它必然简化了现实：家庭支持、行业变化、地域差异、身体的复杂程度都没有被完全建模。
+            它的用处是让你看见几种权衡，而不是替你决定怎么活。
           </p>
           <ul className="mt-4 space-y-1.5 text-sm leading-6 text-ink-2">
-            <li>· 单次结果可能极具偶然性；</li>
-            <li>· 同一个策略对应的是一个分布，而不是一个结局；</li>
-            <li>· 概率论不是用来精准预言一次人生，而是用来理解不确定性。</li>
+            <li>· 一次的结果，可能只是运气；</li>
+            <li>· 同一种活法，会活出很多种样子；</li>
+            <li>· 它只是把很多种可能摆在你面前，不是替你算命。</li>
           </ul>
         </Card>
 
